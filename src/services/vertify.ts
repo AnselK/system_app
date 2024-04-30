@@ -3,7 +3,7 @@ export const vertifyCode = (code: string) => {
   return request({
     url: "/activation_code",
     method: "POST",
-    data: { code },
+    params: { code },
   });
 };
 
