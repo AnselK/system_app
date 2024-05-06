@@ -9,29 +9,34 @@ function useCircleFetch<T>() {
   const [loading, SetLoading] = useState<boolean>(false);
   const navigate = useNavigate();
   const [error, setError] = useState<any>(null);
-  const [data, setData] = useState<T>();
+  const [list, setList] = useState<T | Array<any>>([]);
   let flag = false;
-  const request = async (data) => {
+  const request = async (params) => {
     if (flag) return (flag = false);
     try {
-      const res: any = await queryData(data, token);
+      const res: any = await queryData(params, token);
       switch (res.code) {
         case 0:
-          if (res.code === 0) {
-            if (res.has_more === 0) {
-              SetLoading(false);
-              return;
-            }
+          
+          if (res.data.length > 0) {
             // @ts-ignore
-            setData([...data, , ...res.data]);
-            if (res.has_more === 1) {
-              timeout(() => request(data), 1000);
-            }
+            const data = [...list,...res.data]
+            setList(data);
           }
+          if (res.has_more === 0) {
+            SetLoading(false);
+            return;
+          }
+          if (res.has_more === 1) {
+            timeout(() => request(params), 2000);
+          }
+
           break;
         case 3:
           navigate("/login");
           SetLoading(false);
+          break;
+        default:
           break;
       }
     } catch (error) {
@@ -52,8 +57,8 @@ function useCircleFetch<T>() {
     cancel();
     SetLoading(false);
   };
-  return [data, start, loading, pause, error] as [
-    typeof data,
+  return [list, start, loading, pause, error] as [
+    T,
     typeof start,
     boolean,
     typeof pause,

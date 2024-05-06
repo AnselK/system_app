@@ -1,4 +1,4 @@
-import { Button, Space, Input, Select } from "antd";
+import { Button, Space, Input, Select, Form } from "antd";
 import type { ButtonProps, FormProps } from "antd";
 import React, { memo, useContext } from "react";
 import useInput from "../../hooks/useInput";
@@ -21,53 +21,46 @@ interface search {
 
 type sel = "select";
 
-const Filter = ({ onSearch  }) => {
-  const { loading,pause } = useContext(pageContext);
-  const [Inputval, setSearchValue, Composition] = useInput<string>("");
-  const [Selectval, setSelectValue] = useInput<String, sel>("user_name");
-  const selectOptions = [
-    { value: "user_name", label: "用户名称" },
-    { value: "comment_text", label: "评论内容" },
-    { value: "ip_address", label: "ip" },
-  ];
-  const onFinish: ButtonProps["onClick"] = () => {
-    if (!Inputval.trim()) return;
-    pause(false)
-    onSearch({
-      searchCol: Selectval,
-      search_info: Inputval,
-    });
+const Filter = ({ onSearch }) => {
+  const { searchLoading, pause } = useContext(pageContext);
+  const [form] = Form.useForm();
+  const onFinish = (value) => {
+    if (!value.search_info.trim()) return;
+    onSearch({ ...value });
   };
 
   const onPause = () => {
-    if (!loading) return;
+    // if (!searchLoading) return;
     pause(true);
   };
 
   return (
     <div className="filter-form">
-      <Space size="large">
-        <Space.Compact>
-          <Select
-            options={selectOptions}
-            value={Selectval}
-            onChange={setSelectValue}
-          ></Select>
-          <Input
-            value={Inputval}
-            onChange={setSearchValue}
-            onCompositionEnd={Composition}
-            onCompositionStart={Composition}
-            onCompositionUpdate={Composition}
-          ></Input>
-        </Space.Compact>
-        <Button type="primary" onClick={onFinish} disabled={loading}>
-          搜索
-        </Button>
-        <Button type="primary" onClick={onPause} disabled={!loading}>
-          停止
-        </Button>
-      </Space>
+      <Form form={form} onFinish={onFinish}>
+        <Space size="large">
+          <Space.Compact>
+            {/* <Form.Item name={"searchCol"} initialValue={"user_name"}>
+              <Select options={selectOptions}></Select>
+            </Form.Item> */}
+            <Form.Item name={"search_info"}>
+              <Input></Input>
+            </Form.Item>
+          </Space.Compact>
+          <Form.Item>
+            <Space>
+              <Button type="primary" disabled={searchLoading} htmlType="submit">
+                搜索
+              </Button>
+              <Button
+                type="primary"
+                onClick={onPause}
+              >
+                停止
+              </Button>
+            </Space>
+          </Form.Item>
+        </Space>
+      </Form>
     </div>
   );
 };

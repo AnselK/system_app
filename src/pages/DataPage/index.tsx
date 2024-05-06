@@ -5,6 +5,7 @@ import Table from "./_components/Table";
 import { searchProps } from "./type";
 import "./style.less";
 import { stopQueryData } from "@src/services/data";
+import useCircleFetch from "./hooks/useCircleFetch";
 interface user {
   uid: string;
   user_name: string;
@@ -16,24 +17,23 @@ interface user {
 
 type select = Partial<Pick<user, "user_name" | "comment_time" | "ip_address">>;
 export const pageContext = createContext({
-  loading: false,
   pause: (status) => {},
-  changeLoading: (type: boolean) => {},
-  pauseStatus: false,
+  searchLoading:false
 });
 
 const DataPage = () => {
-  const [search, setSearch] = useState<searchProps | undefined>();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [pauseStatus, setPauseStatus] = useState<boolean>(false);
+  const [dataSource, start, loading, pause] = useCircleFetch<Array<user>>();
   const onFinish = (values: searchProps) => {
-    setSearch(values);
+    if(!values.search_info.trim())return
+    console.log(values,'vvv');
+    
+    start(values)
   };
 
   const stop = (status)=>{
-    if(!status) return setPauseStatus(status)
+    if(!status) return pause()
     stopQueryData().then(res=>{
-      setPauseStatus(status)
+      pause()
     })
   }
 
@@ -41,14 +41,12 @@ const DataPage = () => {
     <div className="data-page">
       <pageContext.Provider
         value={{
-          loading,
-          pauseStatus,
-          changeLoading: (type: boolean) => setLoading(type),
           pause: stop,
+          searchLoading:loading
         }}
       >
         <Filter onSearch={onFinish}></Filter>
-        <Table search={search}></Table>
+        <Table data={dataSource!}></Table>
       </pageContext.Provider>
     </div>
   );

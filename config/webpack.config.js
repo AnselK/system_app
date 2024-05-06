@@ -210,7 +210,7 @@ module.exports = {
     historyApiFallback: true,
     compress: true,
     host: "0.0.0.0",
-    port: 8000,
+    port: 8001,
     hot: true,
   },
   devtool: isProduction ? "source-map" : "eval-cheap-module-source-map",
