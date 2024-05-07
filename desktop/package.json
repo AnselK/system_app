@@ -35,7 +35,7 @@
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
       "target": "nsis"
     },
-    "electronDist": "./electron"
+    "electronDist": "./electron/electron-v26.1.0-win32-x64"
   },
   "keywords": [],
   "author": "",
