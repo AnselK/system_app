@@ -1,7 +1,6 @@
 const { BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
-const vertify = require("./utils/start");
-const { sign } = require("./utils/start");
+const { sign, vertify } = require("./utils/start");
 const { INDEX_PATH, SERVER_POD } = require("./const/global");
 const { exec } = require("child_process");
 
@@ -25,7 +24,7 @@ function createMainWindow() {
   });
 
   if (isDevelopment) {
-    mainWindow.loadURL("http://localhost:8000/");
+    mainWindow.loadURL("http://localhost:8001/");
   } else {
     mainWindow.loadFile(INDEX_PATH);
     // const entryPath = path.resolve(__dirname, '../../build/index.html')
@@ -34,6 +33,7 @@ function createMainWindow() {
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
     start_exe(SERVER_POD, (flag) => {
+      console.log(flag, "fff");
       if (flag) {
         mainWindow.webContents.send("server-success");
         getUserInfo();
@@ -87,8 +87,15 @@ function mainWindowListenEvents() {
     mainWindowIsExist() && mainWindow.webContents.openDevTools();
   });
 
-  ipcMain.on("main-vertify-success", (code) => {
-    sign(code);
+  ipcMain.on("main-vertify-success", (e,code) => {
+    console.log(code, "ddd");
+    sign(code, (flag) => {
+      if (!flag) {
+        mainWindow.webContents.send("store-code-error");
+      } else {
+        mainWindow.webContents.send("store-code-success");
+      }
+    });
     // mainWindowIsExist() && mainWindow.loadFile(INDEX_PATH);
   });
 }

@@ -19,18 +19,21 @@ const Loading = () => {
       });
   };
   useEffect(() => {
-    ipcRendererOn("server-success", () => {});
-    ipcRendererOn("server-error", () => {
-        navigate("/500");
+    ipcRendererOn("server-success", () => {
+      console.log("success");
     });
-    ipcRendererOn("user-code", (code: string) => {
+    ipcRendererOn("server-error", () => {
+      navigate("/500");
+    });
+    ipcRendererOn("user-code", (e,code: string) => {
+      console.log(code, "user-code");
       if (!code) {
         navigate("/login");
       } else {
         vertify(code);
       }
     });
-    navigate("/home");
+    // navigate("/home");
   }, []);
   return (
     <div className="pro-loading">

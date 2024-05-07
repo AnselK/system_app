@@ -13,10 +13,10 @@ const VertifyPage = memo(() => {
   }, []);
 
   const vertify = useCallback((values) => {
-    debugger;
     vertifyCode(values.code)
       .then((res: any) => {
         if (res.code === 0 && res.activation_code_status) {
+          sendVertifyMsg(values.code)
           navigate("/home");
         } else {
           messageError("激活码校验失败");

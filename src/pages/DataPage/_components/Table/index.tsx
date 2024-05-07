@@ -75,6 +75,7 @@ const TableC = (props: propsType) => {
 
   useEffect(() => {
     setdDataSource(data);
+    form.resetFields()
   }, [data]);
 
   const onFinish = (value) => {
