@@ -3,30 +3,40 @@ import React from "react";
 import { lazy } from "react";
 
 const Loading = lazy(() => import("@pages/Loading"));
-const Home = lazy(() => import("@pages/DataPage"));
+const Data = lazy(() => import("@pages/DataPage"));
 const Login = lazy(() => import("@pages/VertifyPage"));
+const Index = lazy(() => import("@pages/Index"));
+const SearchIndex = lazy(() => import("@pages/SearchIndex"));
 const App = lazy(() => import("@app/app"));
 
 const routes: Array<RouteObject & { redirect?: string }> = [
   {
     path: "/",
-    element: <Navigate replace to="/loading"></Navigate>,
+    element: <Navigate to="/loading"></Navigate>,
+  },
+  {
+    path: "/",
+    element: <Index />,
     children: [
       {
         path: "/home",
-        element: <Home />,
+        element: <Data />,
       },
       {
-        path: "/loading",
-        element: <Loading />,
+        path: "/search",
+        element: <SearchIndex />,
       },
     ],
+  },
+
+  {
+    path: "/loading",
+    element: <Loading />,
   },
   {
     path: "/login",
     element: <Login />,
   },
-  
 ];
 
 export default routes;

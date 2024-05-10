@@ -56,6 +56,7 @@
         "webpackbar": "^5.0.2"
     },
     "dependencies": {
+        "@ant-design/icons": "^5.3.7",
         "@reduxjs/toolkit": "^1.9.5",
         "antd": "^5.7.1",
         "axios": "^1.6.8",

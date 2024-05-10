@@ -4,19 +4,18 @@ import React, {
   useCallback,
   ChangeEvent,
   Suspense,
+  useState,
 } from "react";
 import DesktopHeader from "@components/desktopHeader";
-import {
-  Routes,
-  Route,
-} from "react-router-dom";
-import routes from "@src/router/routes";
+import { Route, useRoutes } from "react-router-dom";
+import routes from "@src/router";
 import "./app.less";
 import {
   isDesktop,
   getProcessNodeEnv,
   ipcRendererSend,
 } from "@common/desktopUtils";
+import Loading from "@src/components/Loading";
 
 const mapRoutes = (routes) => {
   if (!Array.isArray(routes)) {
@@ -30,8 +29,9 @@ const mapRoutes = (routes) => {
           key={route.path + index || index}
           path={route.path}
           element={route.element}
-        ></Route>
-        {route.children ? mapRoutes(route.children) : void 0}
+        >
+          {route.children ? mapRoutes(route.children) : void 0}
+        </Route>
       </>
     );
   });
@@ -40,7 +40,7 @@ const mapRoutes = (routes) => {
 function App() {
   const openDevtoolInput = useRef<HTMLInputElement>(null);
   const isDevelopment = useRef(getProcessNodeEnv() === "development");
-
+  const [loaded, setLoaded] = useState<boolean>();
   const openDevtool = useCallback(() => {
     ipcRendererSend("mainWindow-open-devtool");
   }, []);
@@ -51,6 +51,7 @@ function App() {
       openDevtool();
     }
   };
+
   useEffect(() => {
     document.addEventListener("keydown", (e) => {
       const { ctrlKey, metaKey, altKey, key } = e;
@@ -89,9 +90,16 @@ function App() {
       {isDesktop() && <DesktopHeader />}
       <div className={isDesktop() ? "desktop-app-content" : "app-content"}>
         {/* {useRoutes(routes)}F */}
-        <Suspense fallback='加载中...'>
-        <Routes>{mapRoutes(routes)}</Routes>
-        </Suspense>
+        {loaded ? (
+          <Loading></Loading>
+        ) : (
+          <Suspense fallback="加载中...">
+            {/* <Routes>{mapRoutes(routes)}</Routes> */}
+            {/* <Outlet></Outlet> */}
+            {useRoutes(routes)}
+          </Suspense>
+        )}
+
         {/* <VertifyPage></VertifyPage> */}
         {/* <div className="electron-img">
                     <img src={electronImg} alt="" />

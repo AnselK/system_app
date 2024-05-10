@@ -1,12 +1,15 @@
 const { BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 const { sign, vertify } = require("./utils/start");
-const { INDEX_PATH, SERVER_POD } = require("./const/global");
-const { exec } = require("child_process");
+const { INDEX_PATH, SERVER_POD, isDevelopment } = require("./const/global");
+const { app } = require("electron");
+const { storeCode } = require("./utils/end");
+const ExeManage = require("./utils/exe");
 
-const isDevelopment = process.env.NODE_ENV === "development";
 let mainWindow = null;
-let process_id = null;
+
+let exe = new ExeManage(SERVER_POD);
+
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1160,
@@ -32,34 +35,27 @@ function createMainWindow() {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
-    start_exe(SERVER_POD, (flag) => {
-      console.log(flag, "fff");
-      if (flag) {
-        mainWindow.webContents.send("server-success");
-        getUserInfo();
-      } else {
-        mainWindow.webContents.send("server-error");
-      }
+    setTimeout(() => {
+      exe.start_exe((flag) => {
+        if (flag) {
+          mainWindow.webContents.send("server-success");
+          getUserInfo();
+        } else {
+          mainWindow.webContents.send("server-error");
+        }
+      });
     });
   });
 
   mainWindowListenEvents();
 }
 
-function start_exe(exePath, cb) {
-  process_id = exec(exePath, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`执行的错误: ${error}`);
-      cb(false);
-      return;
-    }
-    console.log(`stdout: ${stdout}`);
-    console.error(`stderr: ${stderr}`);
-    cb(true);
-  });
-}
-
 function mainWindowListenEvents() {
+  app.on("before-quit", () => {
+    exe.end_exe();
+    exe = null;
+  });
+
   ipcMain.on("mainWindow-min", () => {
     mainWindowIsExist() && mainWindow.minimize();
   });
@@ -79,7 +75,6 @@ function mainWindowListenEvents() {
   });
 
   ipcMain.on("mainWindow-close", () => {
-    if (process_id) process_id.kill();
     mainWindowIsExist() && mainWindow.hide();
   });
 
@@ -87,8 +82,13 @@ function mainWindowListenEvents() {
     mainWindowIsExist() && mainWindow.webContents.openDevTools();
   });
 
-  ipcMain.on("main-vertify-success", (e,code) => {
-    console.log(code, "ddd");
+  ipcMain.on("vertify-code-success", (e, code) => {
+    storeCode(code);
+  });
+
+  ipcMain.on("mainWindow-rendered", () => {});
+
+  ipcMain.on("main-vertify-success", (e, code) => {
     sign(code, (flag) => {
       if (!flag) {
         mainWindow.webContents.send("store-code-error");

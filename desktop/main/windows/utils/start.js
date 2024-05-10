@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { dirNmae } = require("../utils/dir");
 const request = require("../../utils/request");
-const { PASS_WORD_FILE_PATH, PASS_WORD_FILE_NAME } = require("../const/global");
+const { PASS_WORD_FILE_PATH, PASS_WORD_FILE_NAME, ROOT } = require("../const/global");
 const { app } = require("electron");
 const vertify = async (code) => {
   const config = {
@@ -24,17 +24,12 @@ const vertify = async (code) => {
 };
 
 function vertifyLogin(cb) {
-  const file_path = dirNmae(
-    app.getAppPath() + PASS_WORD_FILE_PATH + PASS_WORD_FILE_NAME
-  );
+  const file_path = ROOT + PASS_WORD_FILE_PATH + PASS_WORD_FILE_NAME
   fs.readFile(file_path, "utf-8", async (error, data) => {
-    console.log(cb, "ccc");
     if (error) {
       cb(false);
       return;
     }
-    console.log(cb, "ccc");
-    // const status = await vertify(data);
     cb(data.trim());
   });
 }
@@ -43,7 +38,6 @@ function createFile(filepath) {
   if (!fs.existsSync(filepath)) {
     try {
       fs.mkdirSync(filepath, { recursive: true }); // 使用 { recursive: true } 创建多级目录
-      console.log("Directory created:");
     } catch (err) {
       console.error("Error creating directory:", err);
       return; // 创建目录失败，可以进行错误处理
@@ -52,10 +46,8 @@ function createFile(filepath) {
 }
 
 function signIn(code, cb) {
-  const file_path = dirNmae(
-    app.getAppPath() + PASS_WORD_FILE_PATH + PASS_WORD_FILE_NAME
-  );
-  const dir_path = dirNmae(app.getAppPath() + PASS_WORD_FILE_PATH);
+  const file_path = ROOT + PASS_WORD_FILE_PATH + PASS_WORD_FILE_NAME
+  const dir_path = ROOT + PASS_WORD_FILE_PATH
   let _i = 0;
   const write = (content) => {
     try {
