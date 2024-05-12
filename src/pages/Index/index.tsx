@@ -6,7 +6,7 @@ const { Sider, Content } = Layout;
 const Index = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    navigate("/home");
+    navigate("/search");
   }, []);
   const search = ["医美"];
   const renderItem = (item) => {
@@ -18,12 +18,18 @@ const Index = () => {
   };
   const listHeader = (
     <div>
-      <Button>新增搜索</Button>
+      <Button
+        onClick={() => {
+          navigate("/search");
+        }}
+      >
+        新增搜索
+      </Button>
     </div>
   );
   return (
     <Layout style={{ width: "100%", height: "100%" }}>
-      <Sider theme="light">
+      <Sider theme="light" style={{ padding: "16px" }}>
         <List
           header={listHeader}
           renderItem={renderItem}

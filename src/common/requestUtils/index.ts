@@ -6,6 +6,9 @@ const request = axios.create({
 });
 
 request.interceptors.response.use((response) => {
+  if(response.status !== 200){
+    return Promise.reject(response)
+  }
     return response.data;
 });
 

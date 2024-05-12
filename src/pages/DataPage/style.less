@@ -2,7 +2,55 @@
     padding: 16px;
     height: 100%;
 
-    .table-page {
-        padding-top: 0;
+    .search-box {
+        display: flex;
+
+        .search-form-container {
+            flex: 1;
+        }
+
+        .page-type-container {
+            padding: 16px;
+        }
     }
+}
+
+.table-page {
+    padding: 16px 0;
+    height: 100%;
+    overflow: auto;
+
+    .table-page-container {
+        height: 100%;
+
+        .list-table {
+            height: 100%;
+            background-color: #fff;
+        }
+    }
+}
+
+.data-list-card {
+    border-radius: 8px;
+    margin-top: 16px;
+    padding: 16px;
+
+    &:first-child {
+        margin-top: 0;
+    }
+
+    .data-list-desc {
+        background-color: #eee;
+        padding: 12px;
+    }
+
+    background-color: #fff;
+
+    .data-list-table {
+        margin-top: 16px;
+    }
+}
+
+.ant-spin-nested-loading {
+    height: 100%;
 }

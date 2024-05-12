@@ -6,6 +6,7 @@ import { CommentsApi, Video } from "../type";
 
 function useCircleFetch<T>() {
   const timeout = setTimeout || setImmediate;
+  let timer;
   const { token, cancel } = cancelToken();
   const [loading, SetLoading] = useState<boolean>(false);
   const navigate = useNavigate();
@@ -19,12 +20,16 @@ function useCircleFetch<T>() {
       const res: any = await queryData(params, token);
       switch (res.code) {
         case 0:
-          const { comments_info, video_info, all_finish }: CommentsApi =
-            res.data;
+          const { data, all_finish } = res;
+          const { comments_info, video_info }: CommentsApi = data;
           if (comments_info && comments_info.length > 0) {
             if (prev_video && prev_video.video_id === video_info.video_id) {
               prev_video.list = [...prev_video.list, ...comments_info];
-              setList([...list]);
+
+              setList((prev) => {
+                return [...prev];
+              });
+              // setList([...list]);
             } else {
               const video = {
                 ...video_info,
@@ -32,16 +37,19 @@ function useCircleFetch<T>() {
               };
               prev_video = video;
               // @ts-ignore
-              const data:Array<T> = [...list, video];
-              setList(data);
+              const dataArray: Array<T> = [...list, video];
+              setList((prev) => {
+                return [...prev, video] as T[];
+              });
             }
           }
-          if (all_finish === 0) {
+
+          if (all_finish === 1) {
             SetLoading(false);
             return;
           }
-          if (all_finish === 1) {
-            timeout(() => request(params), 2000);
+          if (all_finish === 0) {
+            timer = timeout(() => request(params), 2000);
           }
 
           break;
@@ -69,6 +77,7 @@ function useCircleFetch<T>() {
     flag = true;
     cancel();
     SetLoading(false);
+    clearTimeout(timer);
   };
   return [list, start, loading, pause, error] as [
     Array<T>,

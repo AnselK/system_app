@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "@app/app";
 import { HashRouter, Route } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "@src/store";
 import { ConfigProvider } from "antd";
 const mapRoutes = (routes) => {
   if (!Array.isArray(routes)) {
@@ -29,7 +31,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <ConfigProvider>
     <HashRouter>
-      <App />
+      <Provider store={store}>
+        <App />
+      </Provider>
       {/* <Routes>{mapRoutes(routes)}</Routes> */}
     </HashRouter>
   </ConfigProvider>
