@@ -1,7 +1,9 @@
 import {
+  Badge,
   Button,
   Form,
   Input,
+  Modal,
   Radio,
   RadioChangeEvent,
   Select,
@@ -17,6 +19,7 @@ import type { SearchValue } from "../../type";
 import { useNavigate } from "react-router-dom";
 import { pageContext } from "../..";
 import { debounce } from "@src/common/functionUtils";
+import { messageError } from "@src/common/messageUtil";
 const selectOptions = [
   { value: "user_name", label: "用户名称" },
   { value: "comment_text", label: "评论内容" },
@@ -28,7 +31,8 @@ export interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ onSearch }) => {
-  const { pause, pageType, changePageType } = useContext(pageContext);
+  const { pause, pageType, changePageType, selectedRowKeys } =
+    useContext(pageContext);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
   const onFinish = useCallback(
@@ -55,6 +59,28 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
   const typeRadioChange = debounce((e: RadioChangeEvent) => {
     changePageType(e.target.value);
   }, 100);
+  
+  const sendMessage = () => {
+    const [form] = Form.useForm()
+    const messageComponent = (<Form form={form}>
+      <Form.Item name={'message'}>
+        <Input.TextArea></Input.TextArea>
+      </Form.Item>
+    </Form>)
+    const modal = Modal.info({
+      icon: "",
+      title: "私信内容",
+      content:messageComponent,
+      onOk() {
+        const {message} = form.getFieldsValue()
+        if(!message.trim()){
+          messageError('请输入私信内容!')
+          return Promise.reject()
+        }
+        modal.destroy()
+      },
+    });
+  };
 
   return (
     <div className="search-box">
@@ -77,12 +103,32 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
                 停止
               </Button>
               <Button onClick={resSearch}>重新搜索</Button>
-              <Button>保存</Button>
+              {selectedRowKeys.length === 0 ? (
+                <Button
+                  disabled={selectedRowKeys.length === 0}
+                  onClick={sendMessage}
+                >
+                  私信
+                </Button>
+              ) : (
+                <Badge count={selectedRowKeys.length}>
+                  <Button
+                    disabled={selectedRowKeys.length === 0}
+                    onClick={sendMessage}
+                  >
+                    私信
+                  </Button>
+                </Badge>
+              )}
             </Space>
           </Form.Item>
         </Space>
       </Form>
-      <Radio.Group onChange={typeRadioChange} defaultValue={pageType} className="page-type-container">
+      <Radio.Group
+        onChange={typeRadioChange}
+        defaultValue={pageType}
+        className="page-type-container"
+      >
         <Radio.Button value={"card"}>
           <CreditCardOutlined />
         </Radio.Button>

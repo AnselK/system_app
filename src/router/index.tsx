@@ -7,6 +7,7 @@ const Data = lazy(() => import("@pages/DataPage"));
 const Login = lazy(() => import("@pages/VertifyPage"));
 const Index = lazy(() => import("@pages/Index"));
 const SearchIndex = lazy(() => import("@pages/SearchIndex"));
+const ProtectRoute = lazy(() => import("@src/components/protectRoute"));
 const App = lazy(() => import("@app/app"));
 
 const routes: Array<RouteObject & { redirect?: string }> = [
@@ -20,7 +21,11 @@ const routes: Array<RouteObject & { redirect?: string }> = [
     children: [
       {
         path: "/home",
-        element: <Data />,
+        element: (
+          <ProtectRoute>
+            <Data />
+          </ProtectRoute>
+        ),
       },
       {
         path: "/search",

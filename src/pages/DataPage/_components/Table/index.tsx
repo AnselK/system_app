@@ -1,9 +1,12 @@
 import { Empty, Spin, Table } from "antd";
-import React, { memo, useContext, useEffect, useState } from "react";
+import React, { memo, useContext, useMemo, useState } from "react";
 import type { SearchValue, Video, Comment } from "../../type";
 import { pageContext } from "../..";
-import { debounce } from "@src/common/functionUtils";
 import Card, { columns } from "./Card";
+import { TableRowSelection } from "antd/es/table/interface";
+import Selection from "./Selection";
+import TableList from "./TableList";
+import CardList from "./CardList";
 
 type propsType = {
   data: Video[];
@@ -12,74 +15,56 @@ type propsType = {
 
 const TableC: React.FC<propsType> = (props) => {
   const { data, filter } = props;
-  const [dataSource, setdDataSource] = useState<Video[] | Comment[]>();
   const [loading, setLoading] = useState<boolean>(false);
   const { searchLoading, pageType } = useContext(pageContext);
-
-  const onFilter = debounce((value: SearchValue) => {
-    setLoading(true);
-    if (data.length === 0) return;
-    if (!value.search_info.trim()) return setdDataSource(data);
-
-    const startFilter = () => {
-      const filterData = data.reduce((prev, item: Video) => {
-        const filterList = item.list.filter((vi) => {
-          const key = value.key_word;
-          return vi[key].indexOf(value.search_info) > -1;
-        });
-        if (pageType === "card") {
-          if (filterList && filterList.length > 0) {
-            // @ts-ignore
-            prev.push({ ...item, list: filterList });
-          }
-        } else {
-          // @ts-ignore
-          prev.push(...filterList);
-        }
-        return prev;
-      }, [] as Video[] | Comment[]);
-      setdDataSource(filterData);
-      setLoading(false);
-    };
-    requestIdleCallback(startFilter, { timeout: 1000 });
-  }, 64);
-
-  const setDataByType = () => {
-    if (pageType === "card") {
-      setdDataSource(data);
-    } else {
-      const flat_data = data.reduce((prev, item: Video) => {
-        prev.push(...item.list);
-        return prev;
-      }, [] as Comment[]);
-      setdDataSource(flat_data);
-    }
+  const startFilter = (dataarr, value) => {
+    const filterData = dataarr.reduce((prev, item: Video) => {
+      const filterList = item.list.filter((vi) => {
+        const key = value.key_word;
+        return vi[key].indexOf(value.search_info) > -1;
+      });
+      if (filterList && filterList.length > 0) {
+        prev.push({ ...item, list: filterList });
+      }
+      return prev;
+    }, [] as Video[]);
+    setLoading(false);
+    return filterData;
   };
 
-  useEffect(() => {
-    if (filter) {
-      onFilter(filter);
-      return;
+  const dataSource = useMemo(() => {
+    if (data.length === 0) {
+      return data;
     }
-    setDataByType();
-  }, [data, filter, pageType]);
+    setLoading(true);
+    if (pageType === "card") {
+      if (!filter?.search_info.trim()) {
+        return data;
+      }
+      return startFilter(data, filter);
+    } else {
+      const flat = () => {
+        const flat_data = data.reduce((prev, item: Video) => {
+          if (!filter?.search_info.trim()) {
+            item.list && prev.push(...item.list);
+          } else {
+            const filterList =
+              item.list &&
+              item.list.filter((vi) => {
+                const key = filter.key_word;
+                return vi[key].indexOf(filter.search_info) > -1;
+              });
+            prev.push(...filterList);
+          }
+          return prev;
+        }, [] as Comment[]);
+        setLoading(false);
+        return flat_data;
+      };
 
-  const tableListComponent = (
-    <Table
-      columns={columns}
-      dataSource={dataSource as Comment[]}
-      className="list-table"
-      scroll={{ y: 700 }}
-    ></Table>
-  );
-
-  const tableCardComponent = (
-    <>
-      {dataSource?.map((item, index) => (
-        <Card data={item} dataSource={item.list} key={item.video_id}></Card>
-      ))}
-    </>
-  );
+      return flat();
+    }
+  }, [data, pageType, filter]);
 
   return (
     <div className="table-page">
@@ -95,7 +80,13 @@ const TableC: React.FC<propsType> = (props) => {
         )
       ) : (
         <div className="table-page-container">
-          {pageType === "card" ? tableCardComponent : tableListComponent}
+          <Selection>
+            {pageType === "card" ? (
+              <CardList dataSource={dataSource}></CardList>
+            ) : (
+              <TableList dataSource={dataSource} loading={loading}></TableList>
+            )}
+          </Selection>
         </div>
       )}
     </div>

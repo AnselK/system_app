@@ -2,5 +2,6 @@ node_modules/
 package-lock.json
 build/
 desktop/dist/
-desktop/electron/electron-v26.1.0-win32-x64
+desktop/electron/
 user/
+*.exe

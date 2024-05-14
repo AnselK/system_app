@@ -1,15 +1,16 @@
 import { Descriptions, Table } from "antd";
 import type { TableProps } from "antd";
-import React, { memo } from "react";
+import React, { memo, useContext, useState } from "react";
 import type { Comment, Video } from "../../../type";
+import { selectionText } from "../Selection";
 
 interface CardProps {
   data: Video;
   dataSource: Comment[];
 }
 
-const getTime = (time: any) => {
-  return new Date(time).getTime();
+const getTime = (time: any): any => {
+  return new Date(time);
 };
 
 const sortTime = (a: Comment, b: Comment) => {
@@ -84,6 +85,8 @@ const Card: React.FC<CardProps> = ({ data, dataSource }) => {
     },
   ];
 
+  const { rowSelection, rowKey } = useContext(selectionText);
+
   return (
     <div className="data-list-card">
       <Descriptions
@@ -98,9 +101,12 @@ const Card: React.FC<CardProps> = ({ data, dataSource }) => {
       </Descriptions>
       <div className="data-list-table">
         <Table
+          virtual
           columns={columns}
+          rowKey={rowKey}
           dataSource={dataSource}
           scroll={{ y: 560 }}
+          rowSelection={rowSelection}
         ></Table>
       </div>
     </div>
