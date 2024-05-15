@@ -47,7 +47,7 @@ const DataPage = () => {
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const messageRowMap = new Map<React.Key, Comment>();
-  const rowKey = (record: Comment) => `${record.u_id}${record.comment_time}`;
+  const rowKey = (record: Comment) => `${record.uid}${record.comment_time}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
     console.log(record, selected, selectedRows, nativeEvent);
 
