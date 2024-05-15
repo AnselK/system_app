@@ -5,3 +5,8 @@ export const messageError = (msg: string | React.ReactNode) => {
     content: msg,
   });
 };
+export const messageSuccess = (msg: string | React.ReactNode) => {
+  message.success({
+    content: msg,
+  });
+};

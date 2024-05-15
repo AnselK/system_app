@@ -19,7 +19,8 @@ import type { SearchValue } from "../../type";
 import { useNavigate } from "react-router-dom";
 import { pageContext } from "../..";
 import { debounce } from "@src/common/functionUtils";
-import { messageError } from "@src/common/messageUtil";
+import { messageError, messageSuccess } from "@src/common/messageUtil";
+import { sendMessage } from "@src/services/data";
 const selectOptions = [
   { value: "user_name", label: "用户名称" },
   { value: "comment_text", label: "评论内容" },
@@ -31,7 +32,7 @@ export interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ onSearch }) => {
-  const { pause, pageType, changePageType, selectedRowKeys } =
+  const { pause, pageType, changePageType, selectedRowKeys, selectRowMap } =
     useContext(pageContext);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
@@ -59,25 +60,42 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
   const typeRadioChange = debounce((e: RadioChangeEvent) => {
     changePageType(e.target.value);
   }, 100);
-  
-  const sendMessage = () => {
-    const [form] = Form.useForm()
-    const messageComponent = (<Form form={form}>
-      <Form.Item name={'message'}>
-        <Input.TextArea></Input.TextArea>
-      </Form.Item>
-    </Form>)
+
+  const startSend = (data) => {
+    sendMessage(data)
+      .then((res) => {
+        messageSuccess("私信发送成功!");
+      })
+      .catch((err) => {
+        messageError("发送私信失败!");
+      });
+  };
+
+  const sendMessageModal = () => {
+    const [form] = Form.useForm();
+    const messageComponent = (
+      <Form form={form}>
+        <Form.Item name={"message"}>
+          <Input.TextArea></Input.TextArea>
+        </Form.Item>
+      </Form>
+    );
     const modal = Modal.info({
       icon: "",
       title: "私信内容",
-      content:messageComponent,
+      content: messageComponent,
       onOk() {
-        const {message} = form.getFieldsValue()
-        if(!message.trim()){
-          messageError('请输入私信内容!')
-          return Promise.reject()
+        const { message } = form.getFieldsValue();
+        if (!message.trim()) {
+          messageError("请输入私信内容!");
+          return Promise.reject();
         }
-        modal.destroy()
+        startSend({
+          msg: message,
+          homepage_links: [...selectRowMap?.values()!],
+        });
+
+        return Promise.resolve();
       },
     });
   };
@@ -106,7 +124,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
               {selectedRowKeys.length === 0 ? (
                 <Button
                   disabled={selectedRowKeys.length === 0}
-                  onClick={sendMessage}
+                  onClick={sendMessageModal}
                 >
                   私信
                 </Button>
@@ -114,7 +132,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
                 <Badge count={selectedRowKeys.length}>
                   <Button
                     disabled={selectedRowKeys.length === 0}
-                    onClick={sendMessage}
+                    onClick={sendMessageModal}
                   >
                     私信
                   </Button>

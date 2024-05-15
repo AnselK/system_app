@@ -32,7 +32,7 @@ export interface Comment {
   comment_time: string;
   comment_text: string;
   ip_address: string;
-  homepage_link;
+  homepage_link:string;
 }
 
 export interface CommentsApi {

@@ -27,6 +27,7 @@ type PageContextProps = {
   onSelectChange: (record, selected, selectedRows, nativeEvent) => void;
   rowKey: TableProps["rowKey"];
   clearSelectKeys: () => void;
+  selectRowMap?: Map<React.Key, string>;
 };
 
 export const pageContext = createContext<PageContextProps>({
@@ -46,11 +47,9 @@ const DataPage = () => {
   const location = useLocation();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const messageRowMap = new Map<React.Key, Comment>();
+  const messageRowMap = new Map<React.Key, string>();
   const rowKey = (record: Comment) => `${record.u_id}${record.comment_time}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
-    console.log(record, selected, selectedRows, nativeEvent);
-
     if (
       selectedRowKeys.length > messageCount ||
       selectedRows.length + selectedRows.length > messageCount
@@ -60,17 +59,17 @@ const DataPage = () => {
     setSelectedRowKeys((prev: React.Key[]) => {
       const row_key = rowKey(record);
       if (!selected) {
+        messageRowMap.delete(row_key);
         const filters = prev.filter((item) => item !== row_key);
         return [...filters];
       }
-      messageRowMap.set(row_key, record);
+      messageRowMap.set(row_key, record.homepage_links);
       prev.push(row_key);
       return [...prev];
     });
   };
   const { info } = location.state || {};
   const stop = async (status: boolean = true) => {
-
     if (loading) {
       pause();
       const [_, error] = await to(stopQueryData);
@@ -116,6 +115,7 @@ const DataPage = () => {
           onSelectChange,
           rowKey,
           clearSelectKeys,
+          selectRowMap: messageRowMap,
         }}
       >
         <Layout style={{ height: "100%" }}>
