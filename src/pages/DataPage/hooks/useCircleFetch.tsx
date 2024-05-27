@@ -1,20 +1,25 @@
 import { cancelToken } from "@src/common/requestUtils/cancel";
-import { queryData } from "@src/services/data";
-import { useState } from "react";
+import { queryData, queryHistoryData } from "@src/services/data";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CommentsApi, Video } from "../type";
-
+import Cache from "../_cache/classes";
+import { debounce } from "@src/common/functionUtils";
+import { SearchsItemType } from "@src/store/search/interface";
+import to from "@src/common/requestUtils/to";
+const cacheReq = new Map();
 function useCircleFetch<T>() {
+  const _chahe = Cache();
   const timeout = setTimeout || setImmediate;
   let timer;
   const { token, cancel } = cancelToken();
-  const [loading, SetLoading] = useState<boolean>(false);
+  const [loading, SetLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const [error, setError] = useState<any>(null);
   const [list, setList] = useState<Array<T>>([]);
   let flag = false;
   let prev_video: Video | undefined;
-  const request = async (params) => {
+  const request = async (current, params) => {
     if (flag) return (flag = false);
     try {
       const res: any = await queryData(params, token);
@@ -36,8 +41,6 @@ function useCircleFetch<T>() {
                 list: comments_info,
               };
               prev_video = video;
-              // @ts-ignore
-              const dataArray: Array<T> = [...list, video];
               setList((prev) => {
                 return [...prev, video] as T[];
               });
@@ -45,11 +48,15 @@ function useCircleFetch<T>() {
           }
 
           if (all_finish === 1) {
+            _chahe.set(current, {
+              status: "success",
+              data: list,
+            });
             SetLoading(false);
             return;
           }
           if (all_finish === 0) {
-            timer = timeout(() => request(params), 2000);
+            timer = timeout(() => request(current, params), 2000);
           }
 
           break;
@@ -64,16 +71,44 @@ function useCircleFetch<T>() {
       setError(error);
       SetLoading(false);
       flag = false;
+      _chahe.set(current, {
+        status: "error",
+        data: list,
+      });
     }
   };
 
-  const start = (data) => {
-    setError(null);
-    SetLoading(true);
-    request(data);
+  const historyQuery = async (current, params) => {
+    const [data, error] = await to(queryHistoryData, params);
+    if (!error) {
+      _chahe.set(current, data);
+    }
   };
 
+  const start = debounce((currentItem: SearchsItemType) => {
+    if (_chahe.has(currentItem)) {
+      const chc = _chahe.get(currentItem);
+      // if (chc.status === "success" || chc.status === "success")
+      return chc;
+    }
+
+    setError(null);
+    SetLoading(true);
+    const data = {
+      search_info: currentItem.key_word,
+      ...currentItem.search_params,
+    };
+    if (currentItem.isHistory) {
+      historyQuery(currentItem, data);
+      return;
+    }
+    request(currentItem, data);
+  }, 64);
+
   const pause = () => {
+    if (!loading) {
+      return;
+    }
     flag = true;
     cancel();
     SetLoading(false);

@@ -5,6 +5,7 @@ import React, {
   createContext,
   useCallback,
   useEffect,
+  ReducerState,
 } from "react";
 import Table from "./_components/Table";
 import "./style.less";
@@ -16,6 +17,8 @@ import type { SearchValue, Video, Comment } from "./type";
 import to from "@src/common/requestUtils/to";
 import { useLocation } from "react-router-dom";
 import { messageError } from "@src/common/messageUtil";
+import { useSelector } from "react-redux";
+import { SearchsItemType } from "@src/store/search/interface";
 const { Header, Content } = Layout;
 const messageCount = 20;
 type PageContextProps = {
@@ -42,9 +45,11 @@ export const pageContext = createContext<PageContextProps>({
 });
 
 const DataPage = () => {
-  const [dataSource, start, loading, pause] = useCircleFetch<Video>();
   const [filter, setFilter] = useState<SearchValue>();
   const location = useLocation();
+  const current:SearchsItemType = useSelector((state: any) => state.main_data.current);
+  // const current = {};
+  const [dataSource, start, sealoading, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const messageRowMap = new Map<React.Key, string>();
@@ -68,9 +73,9 @@ const DataPage = () => {
       return [...prev];
     });
   };
-  const { info } = location.state || {};
   const stop = async (status: boolean = true) => {
-    if (loading) {
+    
+    if (sealoading) {
       pause();
       const [_, error] = await to(stopQueryData);
       if (error) {
@@ -83,12 +88,17 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    if (info) {
-      start({ search_info: info });
-    }
-    return () => {
-      stop();
-    };
+    // if (current?.isHistory) {
+    // } else {
+    // }
+  
+    // start({ search_info: current.keyword, isHistory:current.isHistory });
+    start(current);
+    // return () => {
+    //   // if (!current.isHistory) {
+    //   //   // stFop();
+    //   // }
+    // };
   }, []);
 
   const onSearch: SearchProps["onSearch"] = useCallback(
@@ -108,7 +118,7 @@ const DataPage = () => {
       <pageContext.Provider
         value={{
           pause: stop,
-          searchLoading: loading,
+          searchLoading: sealoading,
           pageType: pageType,
           changePageType: (type) => setPageType(type),
           selectedRowKeys,

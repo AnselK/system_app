@@ -19,7 +19,6 @@ const TableList: React.FC<TableListProps> = ({
       className="list-table"
       scroll={{ y: 700 }}
       rowKey={rowKey}
-      virtual
       rowSelection={rowSelection}
       loading={loading}
     ></Table>

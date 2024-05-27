@@ -21,6 +21,7 @@ import { pageContext } from "../..";
 import { debounce } from "@src/common/functionUtils";
 import { messageError, messageSuccess } from "@src/common/messageUtil";
 import { sendMessage } from "@src/services/data";
+import { useSelector } from "react-redux";
 const selectOptions = [
   { value: "user_name", label: "用户名称" },
   { value: "comment_text", label: "评论内容" },
@@ -34,6 +35,7 @@ export interface SearchProps {
 const Search: React.FC<SearchProps> = ({ onSearch }) => {
   const { pause, pageType, changePageType, selectedRowKeys, selectRowMap } =
     useContext(pageContext);
+  const curreent = useSelector((state: any) => state.main_data.current);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
   const [form] = Form.useForm();
   const onFinish = useCallback(
@@ -117,10 +119,14 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
           </Space.Compact>
           <Form.Item>
             <Space>
-              <Button danger onClick={pauseSearch} loading={pauseLoading}>
-                停止
-              </Button>
-              <Button onClick={resSearch}>重新搜索</Button>
+              {curreent.isHistory ? (
+                ""
+              ) : (
+                <Button danger onClick={pauseSearch} loading={pauseLoading}>
+                  停止爬取
+                </Button>
+              )}
+              {/* <Button onClick={resSearch}>重新搜索</Button> */}
               {selectedRowKeys.length === 0 ? (
                 <Button
                   disabled={selectedRowKeys.length === 0}

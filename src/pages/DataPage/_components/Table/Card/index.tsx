@@ -101,7 +101,6 @@ const Card: React.FC<CardProps> = ({ data, dataSource }) => {
       </Descriptions>
       <div className="data-list-table">
         <Table
-          virtual
           columns={columns}
           rowKey={rowKey}
           dataSource={dataSource}

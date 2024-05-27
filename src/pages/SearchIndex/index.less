@@ -1,9 +1,33 @@
 .search-index-layout {
     padding: 16px;
+    position: relative;
+    .search-filter{
+        position: absolute;
+        top:  32px;
+        right: 32px;
+    }
 }
 
 .search-index {
     height: 100%;
     background-color: #fff;
     padding: 16px;
+}
+
+.search-filter-drop {
+    background-color: #b1b1b160;
+    border-radius: 4px;
+    padding: 16px;
+}
+
+.sort-item-group {
+    .ant-radio-button-wrapper {
+        background-color: transparent;
+        border: none;   
+        &.ant-radio-button-wrapper-checked {
+            border: 1px solid rgb(245, 213, 213);
+            background-color: #b1b1b1;
+            color: #fff;
+        }
+    }
 }

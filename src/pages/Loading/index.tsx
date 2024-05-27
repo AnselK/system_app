@@ -33,7 +33,7 @@ const Loading = () => {
         vertify(code);
       }
     });
-    navigate("/home");
+    navigate("/search");
   }, []);
   return (
     <div className="pro-loading">

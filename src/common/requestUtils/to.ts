@@ -19,7 +19,7 @@ const to = async <T, K>(
   } catch (err) {
     error = true;
   }
-  return [dataSource, error, response];
+  return [dataSource, error, response] as [T, boolean, ResponseObj<T>];
 };
 
 export default to;
