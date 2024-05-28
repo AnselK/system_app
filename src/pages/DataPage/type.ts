@@ -27,7 +27,7 @@ export interface Video extends Video_Info {
 }
 
 export interface Comment {
-  uid: string;
+  u_id: string;
   user_name: string;
   comment_time: string;
   comment_text: string;

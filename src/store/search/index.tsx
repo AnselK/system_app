@@ -12,6 +12,7 @@ type SearchState = {
 };
 const initialState: SearchState = {
   history: [],
+  current: undefined,
 };
 
 const getHistoryAction = () => {};
@@ -21,40 +22,44 @@ export const searchSlice = createSlice({
   initialState,
   reducers: {
     createSearch(state, action: PayloadAction<SearchsItemType>) {
-      const { isHistory, key_word, search_params } = action.payload;
+      console.log(state.history, "state");
+      const { isHistory, search, search_params } = action.payload;
       const id = createId();
       const sear: SearchsItemType = {
-        current_id: id,
-        key_word,
+        id,
+        search,
         isHistory,
         search_params,
       };
       state.current = sear;
-      state.history = [sear, ...state.history];
+      state.history.push({ ...sear });
     },
     changeSearch(state, action) {
+      const history = [...state.history];
+
       if (action.payload) {
         state.current = undefined;
       } else {
-        state.current = state.history.find(
-          (item) => item.current_id === action.payload
-        );
+        state.current = history.find((item) => item.id === action.payload);
       }
     },
     initSearchs(state, action) {
-      state.history.push(action.payload);
+      state.history = action.payload.map((item) => ({
+        ...item,
+        isHistory: true,
+      }));
     },
     addHistoryData(state, action) {
       const h = state.history.find((item) => []);
     },
     deleteSearchHis(state, action) {
       state.history = state.history.filter(
-        (item) => item.current_id !== action.payload
+        (item) => item.id !== action.payload
       );
     },
   },
-  extraReducers(builder) {},
 });
 
-export const { createSearch, initSearchs, changeSearch, deleteSearchHis } = searchSlice.actions;
+export const { createSearch, initSearchs, changeSearch, deleteSearchHis } =
+  searchSlice.actions;
 export default searchSlice.reducer;

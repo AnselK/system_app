@@ -79,13 +79,14 @@ function useCircleFetch<T>() {
   };
 
   const historyQuery = async (current, params) => {
-    const [data, error] = await to(queryHistoryData, params);
+    const [data, error] = await to(queryHistoryData, { id: current.id });
     if (!error) {
       _chahe.set(current, data);
     }
   };
 
   const start = debounce((currentItem: SearchsItemType) => {
+    if (!currentItem) return;
     if (_chahe.has(currentItem)) {
       const chc = _chahe.get(currentItem);
       // if (chc.status === "success" || chc.status === "success")
@@ -95,7 +96,8 @@ function useCircleFetch<T>() {
     setError(null);
     SetLoading(true);
     const data = {
-      search_info: currentItem.key_word,
+      id: currentItem.id,
+      search_info: currentItem.search,
       ...currentItem.search_params,
     };
     if (currentItem.isHistory) {

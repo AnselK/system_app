@@ -10,11 +10,13 @@ export const queryData = <T>(data: queryDataType, cancelToken): Promise<T> => {
   });
 };
 
-export const queryHistoryData = <T>(data: queryDataType): Promise<T> => {
+export const queryHistoryData = <T>(params: {
+  id: string | number;
+}): Promise<T> => {
   return request({
-    method: "POST",
-    params: data,
-    url: "/search/history/comment",
+    method: "GET",
+    params,
+    url: "/get_video_comments",
   });
 };
 
@@ -38,7 +40,7 @@ export const getHistorySearch = <T>(params?: any): Promise<T> => {
   return request({
     method: "GET",
     params,
-    url: "/search/history",
+    url: "/get_search_history",
   });
 };
 
@@ -46,6 +48,6 @@ export const deleteHistorySearch = <T>(params?: any): Promise<T> => {
   return request({
     method: "DELETE",
     params,
-    url: "/search/history/del",
+    url: "/delete_search_history",
   });
 };

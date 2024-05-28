@@ -26,8 +26,8 @@ const SearchIndex = () => {
     dispatch(
       createSearch({
         isHistory: false,
-        key_word: value.search_info,
-        search_params: search_params,
+        search: value.search_info,
+        search_params: { ...search_params },
       })
     );
     navigate("/home", { state: { info: value.search_info, isHistory: false } });

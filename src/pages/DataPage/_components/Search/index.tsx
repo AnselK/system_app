@@ -119,7 +119,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
           </Space.Compact>
           <Form.Item>
             <Space>
-              {curreent.isHistory ? (
+              {curreent?.isHistory ? (
                 ""
               ) : (
                 <Button danger onClick={pauseSearch} loading={pauseLoading}>

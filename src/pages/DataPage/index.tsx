@@ -47,7 +47,9 @@ export const pageContext = createContext<PageContextProps>({
 const DataPage = () => {
   const [filter, setFilter] = useState<SearchValue>();
   const location = useLocation();
-  const current:SearchsItemType = useSelector((state: any) => state.main_data.current);
+  const current: SearchsItemType = useSelector(
+    (state: any) => state.main_data.current
+  );
   // const current = {};
   const [dataSource, start, sealoading, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
@@ -74,7 +76,6 @@ const DataPage = () => {
     });
   };
   const stop = async (status: boolean = true) => {
-    
     if (sealoading) {
       pause();
       const [_, error] = await to(stopQueryData);
@@ -91,15 +92,17 @@ const DataPage = () => {
     // if (current?.isHistory) {
     // } else {
     // }
-  
+
     // start({ search_info: current.keyword, isHistory:current.isHistory });
-    start(current);
+    if (current) {
+      start(current);
+    }
     // return () => {
     //   // if (!current.isHistory) {
     //   //   // stFop();
     //   // }
     // };
-  }, []);
+  }, [current]);
 
   const onSearch: SearchProps["onSearch"] = useCallback(
     (val) => {

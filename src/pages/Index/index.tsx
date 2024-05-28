@@ -9,20 +9,21 @@ import {
   MenuProps,
   Dropdown,
   Modal,
+  Row,
+  Col,
+  Popover,
 } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
-import {
-  changeSearch,
-  createSearch,
-  deleteSearchHis,
-  initSearchs,
-} from "@src/store/search";
+import { changeSearch, deleteSearchHis, initSearchs } from "@src/store/search";
 import { useDispatch } from "react-redux";
 import MsgComponent from "./msgComponent";
 import { deleteHistorySearch, getHistorySearch } from "@src/services/data";
 import to from "@src/common/requestUtils/to";
 import { useSelector } from "react-redux";
 import { messageError } from "@src/common/messageUtil";
+import { SettingFilled } from "@ant-design/icons";
+import Setting from "./setting";
+import { asyncConfigChunk } from "@src/store/users";
 // import { Outlet, useNavigate } from "react-router-dom";
 type MenuItem = Required<MenuProps>["items"][number];
 const { Sider, Content } = Layout;
@@ -33,6 +34,7 @@ const Index = () => {
     navigate("/search");
   }, []);
   const hsitoryItems = useSelector((state: any) => state.main_data.history);
+  const current = useSelector((state: any) => state.main_data.current);
   const [selectedKeys, setselectedKeys] = useState<any[]>([]);
   const getHistoryData = async () => {
     const [data, _error] = await to<any[], any>(getHistorySearch);
@@ -43,13 +45,21 @@ const Index = () => {
 
   useEffect(() => {
     getHistoryData();
+    // @ts-ignore
+    dispatch(asyncConfigChunk());
   }, []);
 
   const historySearch = ({ item, key, keyPath, domEvent }) => {
     setselectedKeys([key]);
     dispatch(changeSearch(key));
-    navigate("/home");
+    setTimeout(() => {
+      navigate("/home");
+    });
   };
+
+  useEffect(() => {
+    console.log(current, "current");
+  }, [current]);
 
   const deleteHistory = (tar) => {
     Modal.confirm({
@@ -81,30 +91,50 @@ const Index = () => {
     },
   ];
 
+  const newSearch = () => {
+    navigate("/search");
+  };
+
   return (
     <Layout style={{ width: "100%", height: "100%" }}>
       <Sider theme="light" style={{ padding: "16px" }}>
-        <Menu
-          onClick={historySearch}
-          items={[
-            {
-              key: "new_search",
-              label: "新搜索",
-            },
-            hsitoryItems.map((item) => ({
-              ...item,
-              icon: () => (
-                <Dropdown menu={{ items: dropItems(item) }}></Dropdown>
-              ),
-            })),
-          ]}
-          selectedKeys={selectedKeys}
+        <Flex
+          vertical
+          justify="space-between"
+          style={{ height: "100%" }}
+          gap={12}
         >
-          <Menu.Item></Menu.Item>
-        </Menu>
-        <Flex>
-          <div className="left-operation"></div>
-          <MsgComponent></MsgComponent>
+          <Button type="primary" onClick={newSearch}>
+            新搜索
+          </Button>
+          <Menu
+            style={{ flex: 1, overflow: "auto" }}
+            onClick={historySearch}
+            items={hsitoryItems.map((item) => ({
+              label: item.search,
+              key: item.id,
+              icon: () => (
+                <Dropdown menu={{ items: dropItems(item) }}>ddd</Dropdown>
+              ),
+            }))}
+            selectedKeys={selectedKeys}
+          >
+            <Menu.Item></Menu.Item>
+          </Menu>
+          <Row>
+            <Col span={4}>
+              <Popover
+                content={<Setting />}
+                trigger={"click"}
+                placement="topLeft"
+              >
+                <SettingFilled />
+              </Popover>
+            </Col>
+            <Col span={18} offset={2}>
+              <MsgComponent></MsgComponent>
+            </Col>
+          </Row>
         </Flex>
       </Sider>
       <Layout>
