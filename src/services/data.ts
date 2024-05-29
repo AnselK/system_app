@@ -45,9 +45,11 @@ export const getHistorySearch = <T>(params?: any): Promise<T> => {
 };
 
 export const deleteHistorySearch = <T>(params?: any): Promise<T> => {
+  console.log("sadasdas",params)
   return request({
     method: "DELETE",
-    params,
+    data:{"id":params},   
     url: "/delete_search_history",
   });
 };
+

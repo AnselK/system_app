@@ -63,19 +63,20 @@ const Index = () => {
     console.log(current, "current");
   }, [current]);
 
-  const deleteHistory = (tar) => {
+  const deleteHistory = (id) => {
     Modal.confirm({
       title: "确认删除",
       content: "数据删除后无法恢复，是否确认删除？",
       async onOk() {
-        getHistoryData();
-        const [_, error] = await to(deleteHistorySearch, tar.id);
+        
+        const [_, error] = await to(deleteHistorySearch, id);
         if (error) {
           messageError("删除失败！");
           return Promise.resolve();
         }
-        dispatch(deleteSearchHis(tar.id));
-        if (tar.id === selectedKeys[0]) {
+        dispatch(deleteSearchHis(id));
+        getHistoryData();
+        if (id === selectedKeys[0]) {
           dispatch(changeSearch(null));
           setselectedKeys(["new_search"]);
           navigate("/search");
@@ -85,13 +86,6 @@ const Index = () => {
     });
   };
 
-  const dropItems = (item): MenuProps["items"] => [
-    {
-      label: <span onClick={() => deleteHistory(item)}>删除</span>,
-      danger: true,
-      key: "delete",
-    },
-  ];
 
   const newSearch = () => {
     navigate("/search");
@@ -117,7 +111,7 @@ const Index = () => {
           >
             {
               hsitoryItems.map(item => (
-                <MenuItem key={item.id} mem={item.memory} >{item.search}</MenuItem>
+                <MenuItem key={item.id} mem={item.comment_count} onDelete={deleteHistory} >{item.search}</MenuItem>
               ))
             }
           </Menu>
