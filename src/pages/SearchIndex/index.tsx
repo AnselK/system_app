@@ -82,23 +82,23 @@ const SearchIndex = () => {
   return (
     <Layout.Content style={{ height: "100%" }} className="search-index-layout">
       <div className="search-index">
-        <div className="search-filter">
-          <Dropdown
-            dropdownRender={dropdownRender}
-            overlayClassName="search-filter-drop"
-          >
-            <Space>
-              排序筛选
-              <DownOutlined />
-            </Space>
-          </Dropdown>
-        </div>
         <Flex justify="center" align="center" style={{ height: "100%" }}>
           <Form onFinish={onFinish} style={{ width: "50%" }}>
             <Form.Item name={"search_info"}>
               <Input
                 size="large"
                 style={{ width: "100%" }}
+                prefix={
+                  <Dropdown
+                    dropdownRender={dropdownRender}
+                    overlayClassName="search-filter-drop"
+                  >
+                    <Space>
+                      排序筛选
+                      <DownOutlined />
+                    </Space>
+                  </Dropdown>
+                }
                 suffix={
                   <Button type="primary" htmlType="submit">
                     开始

@@ -12,6 +12,7 @@ import {
   Row,
   Col,
   Popover,
+  Space,
 } from "antd";
 import { Outlet, useNavigate } from "react-router-dom";
 import { changeSearch, deleteSearchHis, initSearchs } from "@src/store/search";
@@ -24,6 +25,7 @@ import { messageError } from "@src/common/messageUtil";
 import { SettingFilled } from "@ant-design/icons";
 import Setting from "./setting";
 import { asyncConfigChunk } from "@src/store/users";
+import MenuItem from './meunItem'
 // import { Outlet, useNavigate } from "react-router-dom";
 type MenuItem = Required<MenuProps>["items"][number];
 const { Sider, Content } = Layout;
@@ -97,29 +99,27 @@ const Index = () => {
 
   return (
     <Layout style={{ width: "100%", height: "100%" }}>
-      <Sider theme="light" style={{ padding: "16px" }}>
+      <Sider theme="light" style={{ padding: "16px"}} width={"12%"}>
         <Flex
           vertical
           justify="space-between"
           style={{ height: "100%" }}
           gap={12}
         >
-          <Button type="primary" onClick={newSearch}>
+          <Button type="default" onClick={newSearch} style={{marginRight:4,marginLeft:4}}>
             新搜索
           </Button>
           <Menu
             style={{ flex: 1, overflow: "auto" }}
             onClick={historySearch}
-            items={hsitoryItems.map((item) => ({
-              label: item.search,
-              key: item.id,
-              icon: () => (
-                <Dropdown menu={{ items: dropItems(item) }}>ddd</Dropdown>
-              ),
-            }))}
+            
             selectedKeys={selectedKeys}
           >
-            <Menu.Item></Menu.Item>
+            {
+              hsitoryItems.map(item => (
+                <MenuItem key={item.id} mem={item.memory} >{item.search}</MenuItem>
+              ))
+            }
           </Menu>
           <Row>
             <Col span={4}>
