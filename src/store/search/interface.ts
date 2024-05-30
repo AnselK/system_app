@@ -5,7 +5,7 @@ type SearchParams = {
   search_range: number;
 };
 export interface SearchsItemType {
-  id?: string;
+  id?: number;
   search: string;
   isHistory: boolean;
   search_params?: SearchParams;

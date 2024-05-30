@@ -19,6 +19,7 @@ import { useLocation } from "react-router-dom";
 import { messageError } from "@src/common/messageUtil";
 import { useSelector } from "react-redux";
 import { SearchsItemType } from "@src/store/search/interface";
+import search from "@src/store/search";
 const { Header, Content } = Layout;
 const messageCount = 20;
 type PageContextProps = {
@@ -30,7 +31,8 @@ type PageContextProps = {
   onSelectChange: (record, selected, selectedRows, nativeEvent) => void;
   rowKey: TableProps["rowKey"];
   clearSelectKeys: () => void;
-  selectRowMap?: Map<React.Key, string>;
+  selectRowMap?: Map<React.Key, Comment>;
+  changeFollowStateAndClear:() => void;
 };
 
 export const pageContext = createContext<PageContextProps>({
@@ -42,6 +44,8 @@ export const pageContext = createContext<PageContextProps>({
   onSelectChange: (record, selected, selectedRows, nativeEvent) => {},
   rowKey: () => "",
   clearSelectKeys: () => {},
+  selectRowMap:new Map(),
+  changeFollowStateAndClear: () =>{}
 });
 
 const DataPage = () => {
@@ -54,23 +58,43 @@ const DataPage = () => {
   const [dataSource, start, sealoading, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const messageRowMap = new Map<React.Key, string>();
-  const rowKey = (record: Comment) => `${record.u_id}${record.comment_time}`;
+  const [messageRowMap,setMessageRowMap] = useState(new Map<React.Key, Comment>())
+  const rowKey = (record: Comment) => `${record.id}${record.uid}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
+    
     if (
       selectedRowKeys.length > messageCount ||
       selectedRows.length + selectedRows.length > messageCount
     )
       return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
-
     setSelectedRowKeys((prev: React.Key[]) => {
       const row_key = rowKey(record);
       if (!selected) {
-        messageRowMap.delete(row_key);
+        setMessageRowMap(preMap => {
+          const newMap = new Map(preMap);
+          newMap.delete(row_key);
+          return newMap;
+        })
         const filters = prev.filter((item) => item !== row_key);
         return [...filters];
       }
-      messageRowMap.set(row_key, record.homepage_links);
+      const video = dataSource.find(e => e.video_id === record.video_id)
+      console.log("current",current)
+      setMessageRowMap(prevMap => new Map(prevMap).set(row_key,
+        {...record,
+        video_info:{
+          title:video?.title,
+          author_name:video?.author_name,
+          video_id: video?.video_id,
+          video_publish_time: video?.video_publish_time,
+          duration: video?.duration,
+          collect_count: video?.collect_count,
+          comment_count: video?.comment_count,
+          digg_count: video?.digg_count,
+          share_count: video?.share_count,
+          search_id : current.id
+        }}))
+      
       prev.push(row_key);
       return [...prev];
     });
@@ -113,8 +137,20 @@ const DataPage = () => {
 
   const clearSelectKeys = () => {
     setSelectedRowKeys([]);
-    messageRowMap.clear();
+    setMessageRowMap(new Map())
   };
+
+  const changeFollowStateAndClear = () => {
+    selectedRowKeys.forEach(key => 
+      dataSource.forEach(data => 
+        data.list.forEach(cmt => {
+      if(rowKey(cmt) === key){
+        cmt.has_letter = 1;
+      }
+    })))
+    clearSelectKeys()
+    
+  }
 
   return (
     <div className="data-page">
@@ -129,6 +165,7 @@ const DataPage = () => {
           rowKey,
           clearSelectKeys,
           selectRowMap: messageRowMap,
+          changeFollowStateAndClear
         }}
       >
         <Layout style={{ height: "100%" }}>

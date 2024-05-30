@@ -13,7 +13,7 @@ export interface SearchValue {
 export interface Video_Info {
   video_id: string;
   title: string;
-  aythor_name: string;
+  author_name: string;
   video_publish_time: string;
   duration: string;
   collect_count: string;
@@ -27,18 +27,26 @@ export interface Video extends Video_Info {
 }
 
 export interface Comment {
-  u_id: string;
+  id:number
+  uid: string;
   user_name: string;
   comment_time: string;
   comment_text: string;
   ip_address: string;
   homepage_link:string;
+  has_letter:number;
 }
 
 export interface CommentsApi {
   has_more: 0 | 1;
   activation_code_status: boolean;
   all_finish: 0 | 1;
+  comments_info: Comment[];
+  video_info: Video_Info;
+}
+
+
+export interface HistoryData {
   comments_info: Comment[];
   video_info: Video_Info;
 }

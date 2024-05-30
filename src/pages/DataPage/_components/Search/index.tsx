@@ -9,7 +9,7 @@ import {
   Select,
   Space,
 } from "antd";
-import React, { memo, useCallback, useContext, useState } from "react";
+import React, { memo, useCallback, useContext, useState,useRef } from "react";
 import {
   SearchOutlined,
   CreditCardOutlined,
@@ -22,6 +22,14 @@ import { debounce } from "@src/common/functionUtils";
 import { messageError, messageSuccess } from "@src/common/messageUtil";
 import { sendMessage } from "@src/services/data";
 import { useSelector } from "react-redux";
+import { useForm } from "antd/es/form/Form";
+
+import {PlusOutlined} from"@ant-design/icons";
+import DynamicTextAreaForm from "./dynamicTextAreaForm";
+import MessageModal from "./messageModal";
+
+
+
 const selectOptions = [
   { value: "user_name", label: "用户名称" },
   { value: "comment_text", label: "评论内容" },
@@ -33,7 +41,7 @@ export interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({ onSearch }) => {
-  const { pause, pageType, changePageType, selectedRowKeys, selectRowMap } =
+  const { pause, pageType, changePageType, selectedRowKeys, selectRowMap,changeFollowStateAndClear } =
     useContext(pageContext);
   const curreent = useSelector((state: any) => state.main_data.current);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
@@ -59,48 +67,27 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
     await pause();
     setPauseLoading(false);
   }, [onSearch]);
+
   const typeRadioChange = debounce((e: RadioChangeEvent) => {
     changePageType(e.target.value);
   }, 100);
 
-  const startSend = (data) => {
-    sendMessage(data)
-      .then((res) => {
-        messageSuccess("私信发送成功!");
-      })
-      .catch((err) => {
-        messageError("发送私信失败!");
-      });
-  };
+
+  const [modalOpen,setModalOpen] = useState(false)
+
 
   const sendMessageModal = () => {
-    const [form] = Form.useForm();
-    const messageComponent = (
-      <Form form={form}>
-        <Form.Item name={"message"}>
-          <Input.TextArea></Input.TextArea>
-        </Form.Item>
-      </Form>
-    );
-    const modal = Modal.info({
-      icon: "",
-      title: "私信内容",
-      content: messageComponent,
-      onOk() {
-        const { message } = form.getFieldsValue();
-        if (!message.trim()) {
-          messageError("请输入私信内容!");
-          return Promise.reject();
-        }
-        startSend({
-          msg: message,
-          homepage_links: [...selectRowMap?.values()!],
-        });
-
-        return Promise.resolve();
-      },
-    });
+    setModalOpen(true)
   };
+
+  const handleModelClose = () => {
+    setModalOpen(false)
+  }
+
+  const handleOnSendSuccess = () => {
+    console.log(selectRowMap)
+    changeFollowStateAndClear();
+  }
 
   return (
     <div className="search-box">
@@ -160,6 +147,8 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
           <MenuOutlined />
         </Radio.Button>
       </Radio.Group>
+      <MessageModal show={modalOpen} onClose={handleModelClose} onSendSuccess={handleOnSendSuccess} data={[...selectRowMap?.values()!]} 
+      searchId={curreent?.id}></MessageModal>
     </div>
   );
 };

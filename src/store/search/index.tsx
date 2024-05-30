@@ -24,24 +24,26 @@ export const searchSlice = createSlice({
     createSearch(state, action: PayloadAction<SearchsItemType>) {
       
       const { isHistory, search, search_params } = action.payload;
-      const id = createId();
+      const id = parseInt(createId());
       const sear: SearchsItemType = {
         id,
         search,
         isHistory,
         search_params,
       };
+      
       state.current = sear;
       state.history.push({ ...sear });
     },
     changeSearch(state, action) {
       const history = [...state.history];
-      console.log(state.history, "state");
+      
       if (action.payload) {
-        state.current = undefined;
+        state.current = history.find((item) => item.id === parseInt(action.payload));
       } else {
-        state.current = history.find((item) => item.id === action.payload);
+        state.current = undefined;
       }
+     
     },
     initSearchs(state, action) {
       
@@ -49,7 +51,6 @@ export const searchSlice = createSlice({
         ...item,
         isHistory: true,
       }));
-      console.log("sadassssssssssss",action.payload,state.history)
     },
     addHistoryData(state, action) {
       const h = state.history.find((item) => []);

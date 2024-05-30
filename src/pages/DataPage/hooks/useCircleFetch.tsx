@@ -7,6 +7,7 @@ import Cache from "../_cache/classes";
 import { debounce } from "@src/common/functionUtils";
 import { SearchsItemType } from "@src/store/search/interface";
 import to from "@src/common/requestUtils/to";
+import { messageError } from "@src/common/messageUtil";
 const cacheReq = new Map();
 function useCircleFetch<T>() {
   const _chahe = Cache();
@@ -14,12 +15,14 @@ function useCircleFetch<T>() {
   let timer;
   const { token, cancel } = cancelToken();
   const [loading, SetLoading] = useState<boolean>(true);
+  const [onSearch, setOnSearch] = useState<boolean>(false);
   const navigate = useNavigate();
   const [error, setError] = useState<any>(null);
   const [list, setList] = useState<Array<T>>([]);
   let flag = false;
   let prev_video: Video | undefined;
   const request = async (current, params) => {
+    setOnSearch(true)
     if (flag) return (flag = false);
     try {
       const res: any = await queryData(params, token);
@@ -52,6 +55,7 @@ function useCircleFetch<T>() {
               status: "success",
               data: list,
             });
+            setOnSearch(false)
             SetLoading(false);
             return;
           }
@@ -79,18 +83,32 @@ function useCircleFetch<T>() {
   };
 
   const historyQuery = async (current, params) => {
-    const [data, error] = await to(queryHistoryData, { id: current.id });
-    if (!error) {
-      _chahe.set(current, data);
-    }
+    const [data, error,res] = await to<any,any>(queryHistoryData, { id: current.id });
+    const arr:any = []
+    data.forEach(e => {
+      arr.push({
+        ...e.video_info,
+        list:e.comments_info
+      })
+    });
+      setList(arr)
+      _chahe.set(current, {
+        status: "success",
+        data: arr,
+      });
   };
 
   const start = debounce((currentItem: SearchsItemType) => {
+    if(onSearch){
+      messageError("请等待搜索完毕或停止搜索后再进行操作")
+      return
+    }
     if (!currentItem) return;
     if (_chahe.has(currentItem)) {
       const chc = _chahe.get(currentItem);
       // if (chc.status === "success" || chc.status === "success")
-      return chc;
+      setList(chc.data)
+      return
     }
 
     setError(null);
@@ -102,6 +120,7 @@ function useCircleFetch<T>() {
     };
     if (currentItem.isHistory) {
       historyQuery(currentItem, data);
+      SetLoading(false)
       return;
     }
     request(currentItem, data);
@@ -114,6 +133,7 @@ function useCircleFetch<T>() {
     flag = true;
     cancel();
     SetLoading(false);
+    setOnSearch(false)
     clearTimeout(timer);
   };
   return [list, start, loading, pause, error] as [
