@@ -1,5 +1,5 @@
 import { createSlice, current } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
+import type { Dispatch, PayloadAction } from "@reduxjs/toolkit";
 import { createId } from "@src/common/constUtils";
 import { SearchsItemType } from "./interface";
 import to from "@src/common/requestUtils/to";
@@ -15,7 +15,11 @@ const initialState: SearchState = {
   current: undefined,
 };
 
-const getHistoryAction = () => {};
+export const getHistoryAsyncAction = () => {
+  return (dispatch:Dispatch)=>{
+
+  }
+};
 
 export const searchSlice = createSlice({
   name: "main_data",
@@ -32,11 +36,10 @@ export const searchSlice = createSlice({
         loading: true,
       };
       state.current = sear;
-      state.history.push({ ...sear });
+      state.history.push(state.current);
     },
     changeSearch(state, action) {
       const history = [...state.history];
-
       if (!action.payload) {
         state.current = undefined;
       } else {
@@ -51,12 +54,22 @@ export const searchSlice = createSlice({
       }));
     },
     addHistoryData(state, action) {
-      const h = state.history.find((item) => []);
+      if (state.current && state.current?.id === action.payload.id) {
+        state.current.list = action.payload.list;
+      } else {
+        const h = state.history.find((item) => item.id === action.payload.id);
+        if (h) {
+          h.list = action.payload.list;
+        }
+      }
     },
     deleteSearchHis(state, action) {
       state.history = state.history.filter(
         (item) => item.id !== action.payload
       );
+    },
+    changeLoaded(state, action) {
+      if (state.current) state.current.loading = action.payload;
     },
   },
 });

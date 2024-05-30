@@ -1,3 +1,5 @@
+import { Video } from "@src/pages/DataPage/type";
+
 type SearchParams = {
   sort_type: number;
   publish_time: number;
@@ -5,9 +7,10 @@ type SearchParams = {
   search_range: number;
 };
 export interface SearchsItemType {
-  id?: string;
+  id: string;
   search: string;
   isHistory: boolean;
   search_params?: SearchParams;
-  loading?:boolean
+  loading:boolean
+  list?:Video[]
 }
