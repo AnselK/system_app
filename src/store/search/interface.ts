@@ -9,4 +9,5 @@ export interface SearchsItemType {
   search: string;
   isHistory: boolean;
   search_params?: SearchParams;
+  loading?:boolean
 }
