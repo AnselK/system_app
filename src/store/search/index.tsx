@@ -9,16 +9,18 @@ type SearchState = {
   current?: SearchsItemType;
   loading?: boolean;
   currentData?: [];
+  hasSearch: boolean;
 };
 const initialState: SearchState = {
   history: [],
   current: undefined,
+  hasSearch: false,
 };
 
 export const getHistoryAsyncAction = () => {
-  return (dispatch:Dispatch)=>{
-
-  }
+  return (dispatch: Dispatch) => {
+    dispatch(addHistoryData({}));
+  };
 };
 
 export const searchSlice = createSlice({
@@ -54,13 +56,24 @@ export const searchSlice = createSlice({
       }));
     },
     addHistoryData(state, action) {
-      if (state.current && state.current?.id === action.payload.id) {
-        state.current.list = action.payload.list;
-      } else {
-        const h = state.history.find((item) => item.id === action.payload.id);
-        if (h) {
-          h.list = action.payload.list;
+      const setData = (c) => {
+        const v = c.list?.find(
+          (vi) => vi.video_id === action.payload.data.video_id
+        );
+        if (v) {
+          v.list = [...v.list, action.payload.data.list];
+        } else {
+          c.list?.push(action.payload.data);
         }
+        c.loading = action.payload.loading;
+      };
+      if (state.current && state.current.id === action.payload.id) {
+        setData(state.current);
+        return;
+      }
+      const h = state.history.find((item) => item.id === action.payload.id);
+      if (h) {
+        setData(h);
       }
     },
     deleteSearchHis(state, action) {
@@ -71,9 +84,25 @@ export const searchSlice = createSlice({
     changeLoaded(state, action) {
       if (state.current) state.current.loading = action.payload;
     },
+    pauseSearch(state, action) {
+      if (state.current && action.payload === state.current?.id) {
+        state.current.loading = false;
+      } else {
+        const h = state.history.find((item) => item.id === action.payload);
+        if (h) {
+          h.loading = false;
+        }
+      }
+    },
   },
 });
 
-export const { createSearch, initSearchs, changeSearch, deleteSearchHis } =
-  searchSlice.actions;
+export const {
+  createSearch,
+  initSearchs,
+  changeSearch,
+  deleteSearchHis,
+  addHistoryData,
+  pauseSearch,
+} = searchSlice.actions;
 export default searchSlice.reducer;

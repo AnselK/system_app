@@ -1,24 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
+import DataSeaarch from "../_cache/SearchData";
+import { SearchsItemType } from "@src/store/search/interface";
+import { debounce } from "@src/common/functionUtils";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { Video } from "../type";
 
 interface config<T> {
   onSuccess: (data: T) => void;
   onError: (err: any) => void;
 }
 
-function useFetch<T extends any>(url: string) {
-  const [data, setData] = useState<T>();
-  const [loading, setLoading] = useState<boolean>(false);
-  const [status, setStatus] = useState<boolean>(true);
-  const fetch = useMemo(() => {
-    return function <K>(params: K, config?: config<K>) {
-        console.log(params,'params');
-        
-      setLoading(true);
-      //   setData()
-    };
-  }, [url]);
+const cacheReq = new Map<string, DataSeaarch>();
 
-  return [data, fetch, loading, status] as [T, typeof fetch, boolean, boolean];
+function useFetch<T extends any>(current: SearchsItemType) {
+  
 }
 
 export default useFetch;

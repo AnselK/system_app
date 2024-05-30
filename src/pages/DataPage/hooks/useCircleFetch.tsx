@@ -7,11 +7,15 @@ import Cache from "../_cache/classes";
 import { debounce } from "@src/common/functionUtils";
 import { SearchsItemType } from "@src/store/search/interface";
 import to from "@src/common/requestUtils/to";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { addHistoryData, pauseSearch } from "@src/store/search";
 const cacheReq = new Map();
 function useCircleFetch<T>() {
   const _chahe = Cache();
   const timeout = setTimeout || setImmediate;
   let timer;
+  const dispatch = useDispatch();
   const { token, cancel } = cancelToken();
   const [loading, SetLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -20,6 +24,7 @@ function useCircleFetch<T>() {
   let flag = false;
   let prev_video: Video | undefined;
   const request = async (current, params) => {
+    
     if (flag) return (flag = false);
     try {
       const res: any = await queryData(params, token);
@@ -29,8 +34,7 @@ function useCircleFetch<T>() {
           const { comments_info, video_info }: CommentsApi = data;
           if (comments_info && comments_info.length > 0) {
             if (prev_video && prev_video.video_id === video_info.video_id) {
-              prev_video.list = [...prev_video.list, ...comments_info];
-
+              prev_video.list = [...comments_info];
               setList((prev) => {
                 return [...prev];
               });
@@ -46,12 +50,16 @@ function useCircleFetch<T>() {
               });
             }
           }
-
+          dispatch(
+            addHistoryData({
+              id: current.id,
+              data: prev_video,
+              loading: all_finish !== 1,
+            })
+          );
           if (all_finish === 1) {
-            _chahe.set(current, {
-              status: "success",
-              data: list,
-            });
+            _chahe.set(current, 1);
+
             SetLoading(false);
             return;
           }
@@ -63,6 +71,7 @@ function useCircleFetch<T>() {
         case 3:
           navigate("/login");
           SetLoading(false);
+          dispatch(pauseSearch(params.id));
           break;
         default:
           break;
@@ -70,6 +79,7 @@ function useCircleFetch<T>() {
     } catch (error) {
       setError(error);
       SetLoading(false);
+      dispatch(pauseSearch(params.id));
       flag = false;
       _chahe.set(current, {
         status: "error",
@@ -80,8 +90,14 @@ function useCircleFetch<T>() {
 
   const historyQuery = async (current, params) => {
     const [data, error] = await to(queryHistoryData, { id: current.id });
+    const { comments_info, video_info } = data as any;
+    const list = {
+      ...video_info,
+      list: comments_info,
+    };
     if (!error) {
-      _chahe.set(current, data);
+      _chahe.set(current, 1);
+      dispatch(addHistoryData({ id: current.id, data: list, loading: false }));
     }
   };
 
@@ -101,7 +117,12 @@ function useCircleFetch<T>() {
       ...currentItem.search_params,
     };
     if (currentItem.isHistory) {
-      historyQuery(currentItem, data);
+      requestIdleCallback(
+        () => {
+          historyQuery(currentItem, data);
+        },
+        { timeout: 128 }
+      );
       return;
     }
     request(currentItem, data);
@@ -116,10 +137,11 @@ function useCircleFetch<T>() {
     SetLoading(false);
     clearTimeout(timer);
   };
-  return [list, start, loading, pause, error] as [
-    Array<T>,
+  useEffect(() => {
+    // SetLoading(currentSearch.loading);
+  });
+  return [start, pause, error] as [
     typeof start,
-    boolean,
     typeof pause,
     typeof error
   ];

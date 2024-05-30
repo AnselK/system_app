@@ -19,6 +19,7 @@ import { useLocation } from "react-router-dom";
 import { messageError } from "@src/common/messageUtil";
 import { useSelector } from "react-redux";
 import { SearchsItemType } from "@src/store/search/interface";
+import useFetch from "./hooks/useFetch";
 const { Header, Content } = Layout;
 const messageCount = 20;
 type PageContextProps = {
@@ -50,8 +51,7 @@ const DataPage = () => {
   const current: SearchsItemType = useSelector(
     (state: any) => state.main_data.current
   );
-  // const current = {};
-  const [dataSource, start, sealoading, pause] = useCircleFetch<Video>();
+  const [start, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const messageRowMap = new Map<React.Key, string>();
@@ -76,7 +76,7 @@ const DataPage = () => {
     });
   };
   const stop = async (status: boolean = true) => {
-    if (sealoading) {
+    if (current?.loading) {
       pause();
       const [_, error] = await to(stopQueryData);
       if (error) {
@@ -89,19 +89,9 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    // if (current?.isHistory) {
-    // } else {
-    // }
-
-    // start({ search_info: current.keyword, isHistory:current.isHistory });
     if (current) {
       start(current);
     }
-    // return () => {
-    //   // if (!current.isHistory) {
-    //   //   // stFop();
-    //   // }
-    // };
   }, [current]);
 
   const onSearch: SearchProps["onSearch"] = useCallback(
@@ -121,7 +111,7 @@ const DataPage = () => {
       <pageContext.Provider
         value={{
           pause: stop,
-          searchLoading: sealoading,
+          searchLoading: current?.loading ?? true,
           pageType: pageType,
           changePageType: (type) => setPageType(type),
           selectedRowKeys,
@@ -136,7 +126,7 @@ const DataPage = () => {
             <Search onSearch={onSearch}></Search>
           </Header>
           <Content>
-            <Table data={dataSource!} filter={filter}></Table>
+            <Table data={current?.list ?? []} filter={filter}></Table>
           </Content>
         </Layout>
       </pageContext.Provider>

@@ -4,6 +4,7 @@ import { createId } from "@src/common/constUtils";
 const initialState = {
   msgs: [] as any[],
   done: [] as any[],
+  hasMessage: false,
 };
 
 export const msgSlice = createSlice({

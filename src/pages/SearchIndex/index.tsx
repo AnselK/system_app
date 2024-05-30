@@ -12,7 +12,7 @@ import {
 import React, { memo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./index.less";
-import { createSearch } from "@src/store/search";
+import { createSearch, getHistoryAsyncAction } from "@src/store/search";
 import { useDispatch } from "react-redux";
 import { DownOutlined } from "@ant-design/icons";
 
@@ -31,7 +31,7 @@ const SearchIndex = () => {
       })
     );
     navigate("/home", { state: { info: value.search_info, isHistory: false } });
-  };
+  }
 
   const dropdownRender = () => {
     return (
