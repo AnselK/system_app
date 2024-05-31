@@ -16,7 +16,7 @@ const MessageModal = ({show,onClose,data,onSendSuccess,searchId}) => {
             searchId:searchId
         }
         if(doMessage){
-            const messageJson = localStorage.getItem("message");
+            const messageJson = localStorage.getItem("messages");
             if(messageJson){
                 sendData.msgs = JSON.parse(messageJson);
             }
@@ -24,9 +24,13 @@ const MessageModal = ({show,onClose,data,onSendSuccess,searchId}) => {
         sendData.data = data;
         SetLoading(true)
         await sendMessage(sendData)
-                    .then((res) => {
-                        onSendSuccess();
-                        messageSuccess("私信发送成功!");
+                    .then((res:any) => {
+                        if(res.code ===  0){
+                            onSendSuccess();
+                            messageSuccess("私信发送成功!");
+                        }else{
+                            messageError(res.msg)
+                        }
                         SetLoading(false)
                     })
                     .catch((err) => {

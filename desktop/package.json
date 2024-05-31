@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "productName": "Harbour",
+  "productName": "Mohoo",
   "version": "1.0.0",
   "description": "",
   "main": "main/index.js",
@@ -10,8 +10,8 @@
     "build-electron-win64": "electron-builder -w --x64"
   },
   "build": {
-    "productName": "Harbour",
-    "appId": "harbour.electron.app",
+    "productName": "Mohoo",
+    "appId": "Mohoo.electron.app",
     "files": [
       "build/**/*",
       "main/**/*"
@@ -23,15 +23,15 @@
       "oneClick": false,
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "./main/assets/logo.ico",
-      "uninstallerIcon": "./main/assets/logo.ico",
-      "installerHeaderIcon": "./main/assets/logo.png",
+      "installerIcon": "./main/assets/mohoo.ico",
+      "uninstallerIcon": "./main/assets/mohoo.ico",
+      "installerHeaderIcon": "./main/assets/mohoo.png",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Harbour"
+      "shortcutName": "Mohoo"
     },
     "win": {
-      "icon": "./main/assets/logo.ico",
+      "icon": "./main/assets/mohoo.ico",
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
       "target": "nsis"
     },

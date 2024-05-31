@@ -30,7 +30,7 @@ function DesktopHeader() {
         <div className="desktop-header">
             <div className="header-logo-box">
                 <img src={logoImage} alt="" />
-                <span>Harbour</span>
+                <span>Mohoo</span>
             </div>
             <div className="header-handle-box">
                 <div className="handle-icon-box" onClick={handleWindow.bind(this, 'min')}>
