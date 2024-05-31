@@ -6,8 +6,8 @@ export interface searchProps {
 }
 
 export interface SearchValue {
-  key_word: string;
-  search_info: string;
+  ip: string;
+  key_word: [];
 }
 
 export interface Video_Info {

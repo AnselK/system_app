@@ -13,15 +13,16 @@ type propsType = {
   filter?: SearchValue;
 };
 
+
 const TableC: React.FC<propsType> = (props) => {
   const { data, filter } = props;
   const [loading, setLoading] = useState<boolean>(false);
   const { searchLoading, pageType } = useContext(pageContext);
-  const startFilter = (dataarr, value) => {
+  const startFilter = (dataarr, value:SearchValue) => {
+    const regex = new RegExp(value.key_word.join("|"))
     const filterData = dataarr.reduce((prev, item: Video) => {
       const filterList = item.list.filter((vi) => {
-        const key = value.key_word;
-        return vi[key].indexOf(value.search_info) > -1;
+        return handleFilter(vi,value,regex);
       });
       if (filterList && filterList.length > 0) {
         prev.push({ ...item, list: filterList });
@@ -32,27 +33,37 @@ const TableC: React.FC<propsType> = (props) => {
     return filterData;
   };
 
+  const handleFilter = (comment:Comment,search:SearchValue,regex:RegExp) =>{
+    const hasKeyWord = regex.test(comment.comment_text)
+    if(search.ip !== '全部'){
+      return hasKeyWord && comment.ip_address === search.ip
+    }
+    return hasKeyWord;
+  }
+
   const dataSource = useMemo(() => {
     if (data.length === 0) {
       return data;
     }
     setLoading(true);
     if (pageType === "card") {
-      if (!filter?.search_info.trim()) {
+      
+      if (!filter?.key_word || filter?.key_word.length == 0) {
         return data;
       }
       return startFilter(data, filter);
     } else {
       const flat = () => {
         const flat_data = data.reduce((prev, item: Video) => {
-          if (!filter?.search_info.trim()) {
+          debugger
+          if (!filter?.key_word || filter?.key_word.length == 0) {
             item.list && prev.push(...item.list);
           } else {
+            const regex = new RegExp(filter.key_word.join("|"))
             const filterList =
               item.list &&
               item.list.filter((vi) => {
-                const key = filter.key_word;
-                return vi[key].indexOf(filter.search_info) > -1;
+                return handleFilter(vi,filter,regex);
               });
             prev.push(...filterList);
           }

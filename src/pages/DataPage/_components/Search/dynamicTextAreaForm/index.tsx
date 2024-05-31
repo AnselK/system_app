@@ -38,10 +38,9 @@ const DynamicTextAreaForm = () => {
   };
 
   return (
-      <form style={{width:"100%"}}>
+      <form>
         {textAreas.map(textArea => (
-        <Form.Item style={{width:"100%"}} key={textArea.id}>
-          <Space>
+        <Form.Item key={textArea.id} >
           <Badge  count={<CloseCircleTwoTone twoToneColor={"#ff4d4f"} onClick={e => deleteTextArea(textArea.id)}/>}>
           <Input.TextArea
             style={{width:"100%"}} 
@@ -49,7 +48,6 @@ const DynamicTextAreaForm = () => {
             onChange={e => handleTextChange(textArea.id, e)}
           />
           </Badge>
-          </Space>
         </Form.Item>
       ))}
       <Form.Item>

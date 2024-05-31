@@ -62,11 +62,11 @@ const DataPage = () => {
   const rowKey = (record: Comment) => `${record.id}${record.uid}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
     
-    if (
-      selectedRowKeys.length > messageCount ||
-      selectedRows.length + selectedRows.length > messageCount
-    )
-      return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
+    // if (
+    //   selectedRowKeys.length > messageCount ||
+    //   selectedRows.length + selectedRows.length > messageCount
+    // )
+    //   return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
     setSelectedRowKeys((prev: React.Key[]) => {
       const row_key = rowKey(record);
       if (!selected) {
