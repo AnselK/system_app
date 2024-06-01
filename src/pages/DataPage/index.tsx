@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useEffect,
   ReducerState,
+  useRef,
 } from "react";
 import Table from "./_components/Table";
 import "./style.less";
@@ -31,7 +32,7 @@ type PageContextProps = {
   onSelectChange: (record, selected, selectedRows, nativeEvent) => void;
   rowKey: TableProps["rowKey"];
   clearSelectKeys: () => void;
-  selectRowMap?: Map<React.Key, string>;
+  selectRowMap?: React.MutableRefObject<Map<React.Key, string>>;
 };
 
 export const pageContext = createContext<PageContextProps>({
@@ -51,33 +52,34 @@ const DataPage = () => {
   const current: SearchsItemType = useSelector(
     (state: any) => state.main_data.current
   );
+  const current_id: SearchsItemType = useSelector(
+    (state: any) => state.main_data.current_id
+  );
   const [start, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const messageRowMap = new Map<React.Key, string>();
-  const rowKey = (record: Comment) => `${record.u_id}${record.comment_time}`;
+  const messageRowMap = useRef(new Map<React.Key, string>());
+  // const messageRowMap = new Map<React.Key, string>();
+  const rowKey = (record: Comment) => `${record.uid}${record.comment_time}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
     if (
       selectedRowKeys.length > messageCount ||
       selectedRows.length + selectedRows.length > messageCount
     )
       return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
-
-    setSelectedRowKeys((prev: React.Key[]) => {
-      const row_key = rowKey(record);
-      if (!selected) {
-        messageRowMap.delete(row_key);
-        const filters = prev.filter((item) => item !== row_key);
-        return [...filters];
-      }
-      messageRowMap.set(row_key, record.homepage_links);
-      prev.push(row_key);
-      return [...prev];
-    });
+    const row_key = rowKey(record);
+    if (!selected) {
+      messageRowMap.current.delete(row_key);
+      const filters = selectedRowKeys.filter((item) => item !== row_key);
+      return [...filters];
+    }
+    messageRowMap.current.set(row_key, record.homepage_link);
+    selectedRowKeys.push(row_key);
+    setSelectedRowKeys([...selectedRowKeys]);
   };
   const stop = async (status: boolean = true) => {
     if (current?.loading) {
-      pause();
+      pause(current);
       const [_, error] = await to(stopQueryData);
       if (error) {
         message.error("服务器异常，请联系管理员!");
@@ -89,10 +91,11 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    if (current) {
+    console.log(current_id, current, "current_id");
+    if (current_id) {
       start(current);
     }
-  }, [current]);
+  }, [current_id]);
 
   const onSearch: SearchProps["onSearch"] = useCallback(
     (val) => {
@@ -103,7 +106,7 @@ const DataPage = () => {
 
   const clearSelectKeys = () => {
     setSelectedRowKeys([]);
-    messageRowMap.clear();
+    messageRowMap.current.clear();
   };
 
   return (

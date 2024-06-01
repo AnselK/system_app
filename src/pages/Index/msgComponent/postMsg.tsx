@@ -1,27 +1,16 @@
-import { Dispatch } from "@reduxjs/toolkit";
 import to from "@src/common/requestUtils/to";
 import { sendMessage } from "@src/services/data";
-import { doneMsg } from "@src/store/message";
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useSelector } from "react-redux";
-type msgReq = { msg: string; links: string[] };
+type msgReq = { msg: string; links: string[]; id: string | number };
 const flag = 5;
 class PostMsg {
   totals: Array<msgReq> = [];
-  dispatch: Dispatch;
-  current: msgReq = { links: [], msg: "" };
+  current: msgReq | undefined;
   currentMsg;
   is_post = false;
-  constructor() {
+  Callback: Function;
+  constructor(sendedCallback: Function) {
+    this.Callback = sendedCallback;
     this.start();
-    this.dispatch = useDispatch();
-    this.totals = useSelector((state: any) => state.msg_store.msgs);
-    useEffect(() => {
-      if (this.totals.length > 0 && !this.is_post) {
-        this.start();
-      }
-    }, [this.totals]);
   }
   start() {
     if (this.totals.length === 0) return;
@@ -35,18 +24,28 @@ class PostMsg {
   async post() {
     let p_links;
     let msgs;
+
+    if (!this.current) {
+      this.current = this.totals[0];
+    }
     if (this.currentMsg) {
       p_links = this.currentMsg.homepage_links;
       msgs = this.currentMsg.msg;
     } else {
       if (this.current.links.length === 0) {
+        this.totals.splice(0, 1);
         this.current = { ...this.totals[0]! };
 
-        if (!this.current) return;
+        if (!this.current) {
+          this.currentMsg = undefined;
+          this.is_post = false;
+          return;
+        }
       }
-      const { msg, links } = this.current;
+      const { msg } = this.current;
       msgs = msg;
-      p_links = links.splice(0, 5).filter((item) => !!item);
+
+      p_links = this.current.links.splice(0, 5);
     }
     this.is_post = true;
     this.currentMsg = {
@@ -55,19 +54,25 @@ class PostMsg {
     };
     const [_, error] = await to(sendMessage, this.currentMsg);
     if (!error) {
-      this.dispatch(
-        doneMsg({
-          del: this.current.links.length === 0,
-          dones: p_links,
-          index: 0,
-        })
-      );
+      this.Callback({
+        id: this.current.id,
+        del: this.current.links.length === 0,
+        dones: p_links,
+        index: 0,
+      });
       this.currentMsg = null;
     }
     this.idleCalback();
   }
   add(fetchs) {
-    this.totals.push(...fetchs);
+    let data = JSON.parse(JSON.stringify(fetchs));
+    if (this.totals.length !== 0) {
+      data = fetchs.filter(
+        (item) => this.totals.findIndex((d) => d.id + "" === item.id + "") < 0
+      );
+    }
+
+    this.totals.push(...data);
     if (!this.is_post) this.idleCalback();
   }
 }

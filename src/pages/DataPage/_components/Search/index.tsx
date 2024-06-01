@@ -22,6 +22,8 @@ import { debounce } from "@src/common/functionUtils";
 import { messageError, messageSuccess } from "@src/common/messageUtil";
 import { sendMessage } from "@src/services/data";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { addMsg } from "@src/store/message";
 const selectOptions = [
   { value: "user_name", label: "用户名称" },
   { value: "comment_text", label: "评论内容" },
@@ -37,6 +39,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
     useContext(pageContext);
   const curreent = useSelector((state: any) => state.main_data.current);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
+  const dispatch = useDispatch()
   const [form] = Form.useForm();
   const onFinish = useCallback(
     (value) => {
@@ -64,6 +67,7 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
   }, 100);
 
   const startSend = (data) => {
+    debugger
     sendMessage(data)
       .then((res) => {
         messageSuccess("私信发送成功!");
@@ -72,31 +76,34 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
         messageError("发送私信失败!");
       });
   };
-
+  const [commentForm] = Form.useForm();
   const sendMessageModal = () => {
-    const [form] = Form.useForm();
+   
     const messageComponent = (
-      <Form form={form}>
+      <Form form={commentForm}>
         <Form.Item name={"message"}>
           <Input.TextArea></Input.TextArea>
         </Form.Item>
       </Form>
     );
-    const modal = Modal.info({
+    Modal.info({
       icon: "",
       title: "私信内容",
       content: messageComponent,
       onOk() {
-        const { message } = form.getFieldsValue();
+        const { message } = commentForm.getFieldsValue();
         if (!message.trim()) {
           messageError("请输入私信内容!");
           return Promise.reject();
         }
-        startSend({
+        // startSend({
+        //   msg: message,
+        //   homepage_links: [...selectRowMap?.current.values()!],
+        // });
+        dispatch(addMsg({
           msg: message,
-          homepage_links: [...selectRowMap?.values()!],
-        });
-
+          links: [...selectRowMap?.current.values()!],
+        }))
         return Promise.resolve();
       },
     });

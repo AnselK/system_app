@@ -57,10 +57,6 @@ const Index = () => {
     });
   };
 
-  useEffect(() => {
-    console.log(current, "current");
-  }, [current]);
-
   const deleteHistory = (tar) => {
     Modal.confirm({
       title: "确认删除",

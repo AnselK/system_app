@@ -12,5 +12,6 @@ export interface SearchsItemType {
   isHistory: boolean;
   search_params?: SearchParams;
   loading?:boolean
-  list?:Video[]
+  list?:Video[],
+  crawered?:boolean
 }

@@ -1,7 +1,7 @@
 class DataCahe<T extends object, K extends Array<any>> {
-  #_cache?: WeakMap<T, K>;
+  #_cache?: Map<T, K>;
   constructor(init?: Array<[T, K]>) {
-    this.#_cache = new WeakMap(init);
+    this.#_cache = new Map(init);
   }
   set(key: T, value: K, push: boolean = false) {
     if (push) {

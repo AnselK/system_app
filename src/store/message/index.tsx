@@ -13,26 +13,20 @@ export const msgSlice = createSlice({
   reducers: {
     addMsg(state, action) {
       const id = createId();
-      state.msgs.push(action.payload);
+      state.msgs.push({ ...action.payload, id });
     },
     doneMsg(state, action) {
-      const { del, dones, index } = action.payload;
-      if (dones) {
-        const len = state.done.length;
-        const last = len === 0 ? state.msgs[index] : state.done[len - 1];
-        state.done.splice(len - 1, len, {
-          ...last,
-          links: [...last.dones, ...dones],
-        });
-      }
-      if (del) {
-        state.msgs.shift();
-        state.msgs = [...state.msgs];
-      }
+      const { dones, index, id } = action.payload;
+      state.done.push(...dones);
+    },
+    allDonedMsg(state, action) {
+      state.done = [];
+      state.hasMessage = false;
+      state.msgs = [];
     },
   },
 });
 
-export const { addMsg, doneMsg } = msgSlice.actions;
+export const { addMsg, doneMsg, allDonedMsg } = msgSlice.actions;
 
 export default msgSlice.reducer;
