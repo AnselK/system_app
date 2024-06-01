@@ -18,12 +18,12 @@ function createMainWindow() {
     minWidth: 960,
     show: false,
     frame: false,
-    title: "Harbour",
+    title: "Mohoo",
     webPreferences: {
       nodeIntegration: true,
       preload: path.resolve(__dirname, "../utils/contextBridge.js"),
     },
-    icon: path.resolve(__dirname, "../assets/logo.png"),
+    icon: path.resolve(__dirname, "../assets/mohoo.png"),
   });
 
   if (isDevelopment) {

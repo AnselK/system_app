@@ -4,94 +4,121 @@ import {
   Form,
   Input,
   Modal,
-  Radio,
-  RadioChangeEvent,
   Select,
   Space,
+  Divider,
 } from "antd";
-import React, { memo, useCallback, useContext, useState } from "react";
-import {
-  SearchOutlined,
-  CreditCardOutlined,
-  MenuOutlined,
-} from "@ant-design/icons";
+
+import { DeleteFilled } from "@ant-design/icons";
+import React, { memo, useCallback, useContext, useState, useRef } from "react";
+
 import type { SearchValue } from "../../type";
-import { useNavigate } from "react-router-dom";
 import { pageContext } from "../..";
 import { debounce } from "@src/common/functionUtils";
-import { messageError, messageSuccess } from "@src/common/messageUtil";
-import { sendMessage } from "@src/services/data";
+import { messageError } from "@src/common/messageUtil";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
 import { addMsg } from "@src/store/message";
-const selectOptions = [
-  { value: "user_name", label: "用户名称" },
-  { value: "comment_text", label: "评论内容" },
-  { value: "ip_address", label: "ip" },
-];
+import type { InputRef } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import MessageModal from "./messageModal";
+import PageType from "./PageType";
+import { selectOptions } from "./config/area";
 
 export interface SearchProps {
   onSearch: (values: SearchValue & { isSearch: boolean }) => void;
 }
 
+const setSearchHistory = debounce((data) => {
+  localStorage.setItem("keywords", JSON.stringify(data));
+}, 64);
+
 const Search: React.FC<SearchProps> = ({ onSearch }) => {
-  const { pause, pageType, changePageType, selectedRowKeys, selectRowMap } =
-    useContext(pageContext);
+  const { pause, selectedRowKeys, selectRowMap } = useContext(pageContext);
   const curreent = useSelector((state: any) => state.main_data.current);
   const [pauseLoading, setPauseLoading] = useState<boolean>(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const [form] = Form.useForm();
   const onFinish = useCallback(
     (value) => {
       const data = form.getFieldsValue();
+      if (!data.ip) {
+        data.ip = "全部";
+      }
       onSearch({ isSearch: false, ...data });
     },
     [onSearch]
   );
 
-  const navigate = useNavigate();
-
-  const resSearch = useCallback(() => {
-    const data = form.getFieldsValue();
-    pauseSearch();
-    navigate("/search");
-  }, [onSearch]);
+  const onResetSearch = useCallback(
+    (value) => {
+      const data = form.getFieldsValue();
+      if (!data.key_word || data.key_word.length === 0) {
+        return;
+      }
+      form.resetFields();
+      form.setFieldValue("ip", "全部");
+      data.ip = "全部";
+      data.key_word = [];
+      onSearch({ isSearch: false, ...data });
+    },
+    [onSearch]
+  );
 
   const pauseSearch = useCallback(async () => {
     setPauseLoading(true);
     await pause();
     setPauseLoading(false);
   }, [onSearch]);
-  const typeRadioChange = debounce((e: RadioChangeEvent) => {
-    changePageType(e.target.value);
-  }, 100);
 
-  const startSend = (data) => {
-    debugger
-    sendMessage(data)
-      .then((res) => {
-        messageSuccess("私信发送成功!");
-      })
-      .catch((err) => {
-        messageError("发送私信失败!");
-      });
+  const [items, setItems] = useState(["多少钱"]);
+  const [name, setName] = useState("");
+  const [selectKeys, setSelectKeys] = useState<any>([]);
+  const keyWordRef = useRef<InputRef>(null);
+
+  const addItem = (
+    e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>
+  ) => {
+    e.preventDefault();
+    if (!name) {
+      return;
+    }
+    const arr = [...items, name];
+    setItems(arr);
+    setSearchHistory(arr);
+
+    setTimeout(() => {
+      keyWordRef.current?.focus();
+      setName("");
+    }, 0);
   };
-  const [commentForm] = Form.useForm();
+
+  const onDeleteSelectItem = (e, item) => {
+    e.stopPropagation();
+    const arr = items.filter((e) => e !== item);
+    setItems(arr);
+    setSearchHistory(arr);
+  };
+
+  const onNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
+  };
+
+  const [modalForm] = Form.useForm();
   const sendMessageModal = () => {
-   
     const messageComponent = (
-      <Form form={commentForm}>
+      <Form form={modalForm}>
         <Form.Item name={"message"}>
           <Input.TextArea></Input.TextArea>
         </Form.Item>
       </Form>
     );
-    Modal.info({
+    const modal = Modal.info({
       icon: "",
       title: "私信内容",
       content: messageComponent,
       onOk() {
-        const { message } = commentForm.getFieldsValue();
+        const { message } = modalForm.getFieldsValue();
         if (!message.trim()) {
           messageError("请输入私信内容!");
           return Promise.reject();
@@ -100,10 +127,13 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
         //   msg: message,
         //   homepage_links: [...selectRowMap?.current.values()!],
         // });
-        dispatch(addMsg({
-          msg: message,
-          links: [...selectRowMap?.current.values()!],
-        }))
+        dispatch(
+          addMsg({
+            msg: message,
+            links: [...selectRowMap?.current.values()!],
+          })
+        );
+
         return Promise.resolve();
       },
     });
@@ -116,17 +146,70 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
           style={{ width: "100%", justifyContent: "center", padding: 16 }}
           size={"large"}
         >
-          <Space.Compact>
-            <Form.Item name={"key_word"} initialValue={"user_name"}>
-              <Select options={selectOptions} style={{ width: 100 }}></Select>
-            </Form.Item>
-            <Form.Item name={"search_info"}>
-              <Input suffix={<SearchOutlined onClick={onFinish} />}></Input>
-            </Form.Item>
-          </Space.Compact>
+          <Form.Item name="ip" label="IP地址">
+            <Select
+              options={selectOptions}
+              style={{ width: "100%" }}
+              defaultValue={"全部"}
+            ></Select>
+          </Form.Item>
+          <Form.Item name="key_word" label="评论关键词">
+            {/* <Input placeholder="多个关键词以竖线 “|” 隔开"/> */}
+            <Select
+              mode="tags"
+              style={{ width: 300 }}
+              placeholder="请选择关键词"
+              value={selectKeys}
+              onChange={setSelectKeys}
+              dropdownRender={(menu) => (
+                <>
+                  {menu}
+                  <Divider style={{ margin: "8px 0" }} />
+                  <Space style={{ marginRight: 20 }}>
+                    <Input
+                      placeholder=""
+                      ref={keyWordRef}
+                      value={name}
+                      onChange={onNameChange}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    />
+                    <Button
+                      type="text"
+                      icon={<PlusOutlined />}
+                      onClick={addItem}
+                    >
+                      添加关键词
+                    </Button>
+                  </Space>
+                </>
+              )}
+              options={items.map((item, idx) => ({
+                label: (
+                  <>
+                    <span className="search-history-item">
+                      {item}
+                      <DeleteFilled
+                        className="option-delete-icon"
+                        onClick={(e) => onDeleteSelectItem(e, item)}
+                        style={{}}
+                      />
+                    </span>
+                  </>
+                ),
+                value: item,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button onClick={onFinish}>搜索</Button>
+          </Form.Item>
+          <Form.Item>
+            <Button onClick={onResetSearch}>重置</Button>
+          </Form.Item>
           <Form.Item>
             <Space>
-              {curreent?.isHistory ? (
+              {curreent?.crawered ? (
                 ""
               ) : (
                 <Button danger onClick={pauseSearch} loading={pauseLoading}>
@@ -134,39 +217,12 @@ const Search: React.FC<SearchProps> = ({ onSearch }) => {
                 </Button>
               )}
               {/* <Button onClick={resSearch}>重新搜索</Button> */}
-              {selectedRowKeys.length === 0 ? (
-                <Button
-                  disabled={selectedRowKeys.length === 0}
-                  onClick={sendMessageModal}
-                >
-                  私信
-                </Button>
-              ) : (
-                <Badge count={selectedRowKeys.length}>
-                  <Button
-                    disabled={selectedRowKeys.length === 0}
-                    onClick={sendMessageModal}
-                  >
-                    私信
-                  </Button>
-                </Badge>
-              )}
+              <MessageModal searchId={curreent?.id}></MessageModal>
             </Space>
           </Form.Item>
         </Space>
       </Form>
-      <Radio.Group
-        onChange={typeRadioChange}
-        defaultValue={pageType}
-        className="page-type-container"
-      >
-        <Radio.Button value={"card"}>
-          <CreditCardOutlined />
-        </Radio.Button>
-        <Radio.Button value={"list"}>
-          <MenuOutlined />
-        </Radio.Button>
-      </Radio.Group>
+      <PageType />
     </div>
   );
 };

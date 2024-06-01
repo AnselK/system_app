@@ -1,8 +1,9 @@
-import { Descriptions, Table } from "antd";
+import { Descriptions, Table ,Tag} from "antd";
 import type { TableProps } from "antd";
-import React, { memo, useContext, useState } from "react";
+import React, { memo, useContext } from "react";
 import type { Comment, Video } from "../../../type";
 import { selectionText } from "../Selection";
+import { messageSuccess,messageError } from "@src/common/messageUtil";
 
 interface CardProps {
   data: Video;
@@ -15,6 +16,14 @@ const getTime = (time: any): any => {
 
 const sortTime = (a: Comment, b: Comment) => {
   return getTime(a.comment_time) - getTime(b.comment_time);
+};
+
+const handleCopy = (text) => {
+  navigator.clipboard.writeText(text).then(() => {
+    messageSuccess('复制成功√');
+  }).catch(err => {
+    messageError("复制失败")
+  });
 };
 
 export const columns: TableProps<Comment>["columns"] = [
@@ -31,6 +40,16 @@ export const columns: TableProps<Comment>["columns"] = [
     key: "user_name",
     ellipsis: true,
     width: 120,
+  },
+  {
+    title: "是否已关注过",
+    dataIndex: "has_letter",
+    key: "has_letter",
+    ellipsis: true,
+    width: 140,
+    render: (value: any, record: Comment, index: number) => {
+      return <Tag color={value === 1?"green":"red"}>{value===1?"是":"否"}</Tag>
+    },
   },
   {
     title: "评论时间",
@@ -54,6 +73,7 @@ export const columns: TableProps<Comment>["columns"] = [
     ellipsis: true,
     width: 60,
   },
+  
   {
     title: "主页",
     dataIndex: "homepage_link",
@@ -61,9 +81,9 @@ export const columns: TableProps<Comment>["columns"] = [
     ellipsis: true,
     width: 140,
     render: (value: any, record: Comment, index: number) => {
-      return <span>{value}</span>;
+      return <span style={{ cursor: 'pointer'}} onClick={() => handleCopy(value)}>{value}</span>;
     },
-  },
+  }
 ];
 
 const Card: React.FC<CardProps> = ({ data, dataSource }) => {

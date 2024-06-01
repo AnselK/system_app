@@ -93,7 +93,7 @@ export const searchSlice = createSlice({
   reducers: {
     createSearch(state, action: PayloadAction<SearchsItemType>) {
       const { isHistory, search, search_params } = action.payload;
-      const id = createId();
+      const id = parseInt(createId());
       const sear: SearchsItemType = {
         id,
         search,
@@ -101,9 +101,11 @@ export const searchSlice = createSlice({
         search_params,
         loading: true,
       };
+      
       state.current = sear;
-      state.current_id = id;
+      state.current_id = id+'';
       state.history.push(state.current);
+      state.hasCrawer = true
     },
     changeSearch(state, action) {
       const history = [...state.history];
@@ -125,8 +127,10 @@ export const searchSlice = createSlice({
           state.current = target;
         }
       }
+     
     },
     initSearchs(state, action) {
+      
       state.history = action.payload.map((item) => ({
         ...item,
         isHistory: true,

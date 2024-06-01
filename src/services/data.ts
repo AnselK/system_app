@@ -31,7 +31,7 @@ export const stopQueryData = <T>(params?: any): Promise<T> => {
 export const sendMessage = <T>(params?: any): Promise<T> => {
   return request({
     method: "POST",
-    params,
+    data:{...params},
     url: "/follow_send_msg",
   });
 };
@@ -45,9 +45,11 @@ export const getHistorySearch = <T>(params?: any): Promise<T> => {
 };
 
 export const deleteHistorySearch = <T>(params?: any): Promise<T> => {
+  console.log("sadasdas",params)
   return request({
     method: "DELETE",
-    params,
+    data:{"id":params},   
     url: "/delete_search_history",
   });
 };
+

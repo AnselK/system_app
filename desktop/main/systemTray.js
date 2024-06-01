@@ -3,7 +3,7 @@ const path = require('path')
 const { getMainWindow, mainWindowIsExist } = require('./windows/mainWindow')
 
 let tray = null
-const iconPath = path.resolve(__dirname, './assets/logo.png')
+const iconPath = path.resolve(__dirname, './assets/mohoo.png')
 
 function initTray() {
     tray = new Tray(iconPath)
@@ -17,7 +17,7 @@ function initTray() {
         { label: '退出应用', click: () => { app.quit() } },
     ])
     
-    tray.setToolTip('Harbour') // 设置鼠标悬停时显示的提示信息
+    tray.setToolTip('Mohoo') // 设置鼠标悬停时显示的提示信息
     tray.setContextMenu(contextMenu)
     
     tray.on('click', () => {

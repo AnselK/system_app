@@ -1,13 +1,21 @@
 import to from "@src/common/requestUtils/to";
 import { sendMessage } from "@src/services/data";
-type msgReq = { msg: string; links: string[]; id: string | number };
+type msgReq = {
+  msgs: string;
+  data: any[];
+  id: string | number;
+  do_message: boolean;
+  searchId: number;
+};
 const flag = 5;
+const timeout = setTimeout || requestAnimationFrame
 class PostMsg {
   totals: Array<msgReq> = [];
   current: msgReq | undefined;
   currentMsg;
   is_post = false;
   Callback: Function;
+  flag: number = 0;
   constructor(sendedCallback: Function) {
     this.Callback = sendedCallback;
     this.start();
@@ -23,16 +31,16 @@ class PostMsg {
   }
   async post() {
     let p_links;
-    let msgs;
 
     if (!this.current) {
       this.current = this.totals[0];
     }
     if (this.currentMsg) {
-      p_links = this.currentMsg.homepage_links;
-      msgs = this.currentMsg.msg;
+      if (this.flag >= flag) return;
+      this.flag++
+      p_links = this.currentMsg.data;
     } else {
-      if (this.current.links.length === 0) {
+      if (this.current.data.length === 0) {
         this.totals.splice(0, 1);
         this.current = { ...this.totals[0]! };
 
@@ -42,32 +50,36 @@ class PostMsg {
           return;
         }
       }
-      const { msg } = this.current;
-      msgs = msg;
 
-      p_links = this.current.links.splice(0, 5);
+      p_links = this.current.data.splice(0, 5);
     }
     this.is_post = true;
     this.currentMsg = {
-      msg: msgs,
-      homepage_links: p_links,
+      ...this.current,
+      data: p_links,
     };
     const [_, error] = await to(sendMessage, this.currentMsg);
     if (!error) {
       this.Callback({
         id: this.current.id,
-        del: this.current.links.length === 0,
+        del: this.current.data.length === 0,
         dones: p_links,
         index: 0,
       });
+      this.flag = 0
       this.currentMsg = null;
+      timeout(()=>{
+        this.idleCalback();
+      },1000)
+    }else{
+      this.idleCalback();
+
     }
-    this.idleCalback();
   }
   add(fetchs) {
     let data = JSON.parse(JSON.stringify(fetchs));
     if (this.totals.length !== 0) {
-      data = fetchs.filter(
+      data = data.filter(
         (item) => this.totals.findIndex((d) => d.id + "" === item.id + "") < 0
       );
     }

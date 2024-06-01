@@ -1,6 +1,6 @@
 import { TableRowSelection } from "antd/es/table/interface";
 import React, { memo, createContext, useContext } from "react";
-import { Comment } from "../../../type";
+import { Comment, Video } from "../../../type";
 import { pageContext } from "@src/pages/DataPage";
 import { TableProps } from "antd";
 
@@ -13,7 +13,7 @@ export const selectionText = createContext<SelectionTextProps>({
   rowKey: () => "",
 });
 
-const Selection: React.FC<React.PropsWithChildren<{}>> = (props) => {
+const Selection: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { selectedRowKeys, onSelectChange, rowKey } = useContext(pageContext);
 
   const rowSelection: TableRowSelection<Comment> = {
@@ -31,7 +31,7 @@ const Selection: React.FC<React.PropsWithChildren<{}>> = (props) => {
         rowKey,
       }}
     >
-      {props?.children}
+      {children}
     </selectionText.Provider>
   );
 };

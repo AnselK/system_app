@@ -54,3 +54,20 @@
 .ant-spin-nested-loading {
     height: 100%;
 }
+
+.search-history-item {
+    display: block;
+    flex: 1;
+
+    .option-delete-icon {
+        display: none;
+        position: absolute;
+        right: 10px
+    }
+
+    &:hover {
+        .option-delete-icon {
+            display: block;
+        }
+    }
+}

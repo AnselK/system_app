@@ -14,15 +14,14 @@ const MsgComponent = () => {
   const dones = useSelector((state: any) => state.msg_store.done);
   const messages = useMemo(() => {
     return msgs.reduce((prev, cur) => {
-      console.log(cur, "ccc");
+      prev += cur?.data?.length;
 
-      prev.push(...cur.links);
       return prev;
-    }, []);
+    }, 0);
   }, [msgs]);
 
   useEffect(() => {
-    if (messages.length === dones.length && messages.length !== 0) {
+    if (messages === dones.length && messages !== 0) {
       dispatch(allDonedMsg(""));
     }
   }, [dones]);
@@ -36,11 +35,11 @@ const MsgComponent = () => {
   }, [msgs]);
   return (
     <>
-      {messages.length === 0 ? (
+      {messages === 0 ? (
         ""
       ) : (
         <Tooltip title={msgList}>
-          <Progress percent={(dones.length / messages.length) * 100}></Progress>
+          <Progress percent={(dones.length / messages) * 100}></Progress>
         </Tooltip>
       )}
     </>

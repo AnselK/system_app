@@ -5,7 +5,6 @@ import React, {
   createContext,
   useCallback,
   useEffect,
-  ReducerState,
   useRef,
 } from "react";
 import Table from "./_components/Table";
@@ -21,6 +20,8 @@ import { messageError } from "@src/common/messageUtil";
 import { useSelector } from "react-redux";
 import { SearchsItemType } from "@src/store/search/interface";
 import useFetch from "./hooks/useFetch";
+import search from "@src/store/search";
+import { TableRowSelection } from "antd/es/table/interface";
 const { Header, Content } = Layout;
 const messageCount = 20;
 type PageContextProps = {
@@ -29,10 +30,11 @@ type PageContextProps = {
   pageType: string;
   changePageType: (type: string) => void;
   selectedRowKeys: React.Key[];
-  onSelectChange: (record, selected, selectedRows, nativeEvent) => void;
+  onSelectChange: TableRowSelection<any>["onSelect"];
   rowKey: TableProps["rowKey"];
   clearSelectKeys: () => void;
-  selectRowMap?: React.MutableRefObject<Map<React.Key, string>>;
+  selectRowMap?: React.MutableRefObject<Map<React.Key, Comment>>;
+  changeFollowStateAndClear: (data: Video[]) => void;
 };
 
 export const pageContext = createContext<PageContextProps>({
@@ -41,9 +43,10 @@ export const pageContext = createContext<PageContextProps>({
   pageType: "card",
   changePageType: (type) => {},
   selectedRowKeys: [],
-  onSelectChange: (record, selected, selectedRows, nativeEvent) => {},
+  onSelectChange: (...args) => {},
   rowKey: () => "",
   clearSelectKeys: () => {},
+  changeFollowStateAndClear: (data: Video[]) => {},
 });
 
 const DataPage = () => {
@@ -58,28 +61,46 @@ const DataPage = () => {
   const [start, pause] = useCircleFetch<Video>();
   const [pageType, setPageType] = useState<string>("card");
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const messageRowMap = useRef(new Map<React.Key, string>());
-  // const messageRowMap = new Map<React.Key, string>();
-  const rowKey = (record: Comment) => `${record.uid}${record.comment_time}`;
+  const messageRowMap = useRef(new Map<React.Key, Comment>());
+  const rowKey = (record: Comment) => `${record.id}${record.uid}`;
   const onSelectChange = (record, selected, selectedRows, nativeEvent) => {
-    if (
-      selectedRowKeys.length > messageCount ||
-      selectedRows.length + selectedRows.length > messageCount
-    )
-      return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
-    const row_key = rowKey(record);
-    if (!selected) {
-      messageRowMap.current.delete(row_key);
-      const filters = selectedRowKeys.filter((item) => item !== row_key);
-      return [...filters];
-    }
-    messageRowMap.current.set(row_key, record.homepage_link);
-    selectedRowKeys.push(row_key);
-    setSelectedRowKeys([...selectedRowKeys]);
+    // if (
+    //   selectedRowKeys.length > messageCount ||
+    //   selectedRows.length + selectedRows.length > messageCount
+    // )
+    //   return messageError(`一次只能选择${messageCount}条数据，请重新选择`);
+    setSelectedRowKeys((prev: React.Key[]) => {
+      const row_key = rowKey(record);
+      if (!selected) {
+        messageRowMap.current.delete(row_key);
+        const filters = prev.filter((item) => item !== row_key);
+        return [...filters];
+      }
+      const video = current.list?.find((e) => e.video_id === record.video_id);
+
+      messageRowMap.current.set(row_key, {
+        ...record,
+        video_info: {
+          title: video?.title,
+          author_name: video?.author_name,
+          video_id: video?.video_id,
+          video_publish_time: video?.video_publish_time,
+          duration: video?.duration,
+          collect_count: video?.collect_count,
+          comment_count: video?.comment_count,
+          digg_count: video?.digg_count,
+          share_count: video?.share_count,
+          search_id: current.id,
+        },
+      });
+
+      prev.push(row_key);
+      return [...prev];
+    });
   };
   const stop = async (status: boolean = true) => {
     if (current?.loading) {
-      pause(current);
+      pause();
       const [_, error] = await to(stopQueryData);
       if (error) {
         message.error("服务器异常，请联系管理员!");
@@ -91,7 +112,6 @@ const DataPage = () => {
   };
 
   useEffect(() => {
-    console.log(current_id, current, "current_id");
     if (current_id) {
       start(current);
     }
@@ -109,6 +129,19 @@ const DataPage = () => {
     messageRowMap.current.clear();
   };
 
+  const changeFollowStateAndClear = (dataSource) => {
+    selectedRowKeys.forEach((key) =>
+      dataSource.forEach((data) =>
+        data.list.forEach((cmt) => {
+          if (rowKey(cmt) === key) {
+            cmt.has_letter = 1;
+          }
+        })
+      )
+    );
+    clearSelectKeys();
+  };
+
   return (
     <div className="data-page">
       <pageContext.Provider
@@ -122,6 +155,7 @@ const DataPage = () => {
           rowKey,
           clearSelectKeys,
           selectRowMap: messageRowMap,
+          changeFollowStateAndClear,
         }}
       >
         <Layout style={{ height: "100%" }}>
