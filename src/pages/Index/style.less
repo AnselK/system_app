@@ -9,4 +9,27 @@
         }
 
     }
+
+    .loading-icon {
+        .pause {
+            display: none;
+            transition: all linear .3s;
+            margin: 0;
+        }
+
+        .loading {
+            transition: all linear .3s;
+        }
+
+        &:hover {
+            .loading {
+                display: none;
+            }
+
+            .pause {
+                display: inline-block;
+                margin: 0;
+            }
+        }
+    }
 }

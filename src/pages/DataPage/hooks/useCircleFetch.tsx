@@ -10,14 +10,13 @@ import to from "@src/common/requestUtils/to";
 import { useDispatch } from "react-redux";
 import { addHistoryData, pauseSearch, fetchData } from "@src/store/search";
 import { useSelector } from "react-redux";
-import { messageError } from "@src/common/messageUtil";
-const cacheReq = new Map();
 
 const _chahe = Cache();
 function useCircleFetch<T>() {
   const dispatch = useDispatch();
   const current = useSelector((state: any) => state.main_data.curreent);
   const hasCrawer = useSelector((state: any) => state.main_data.hasCrawer);
+  const navigate = useNavigate()
   const historyQuery = async (current, params) => {
     const [data, error] = await to<any[], any>(queryHistoryData, {
       id: current.id,
@@ -35,26 +34,25 @@ function useCircleFetch<T>() {
   };
 
   const start = debounce((currentItem: SearchsItemType) => {
-    if (hasCrawer) {
-      messageError("请等待搜索完毕或停止搜索后再进行操作");
-      return;
-    }
+    
     if (!currentItem) return;
 
-    if (_chahe.has(currentItem)) {
-      const chc = _chahe.get(currentItem);
+    if (_chahe.has(currentItem.id)) {
+      const chc = _chahe.get(currentItem.id);
       return chc;
     }
     const data = {
       id: currentItem.id,
       search_info: currentItem.search,
       ...currentItem.search_params,
+      navigate
     };
     if (currentItem.crawered) {
       historyQuery(currentItem, data);
       return;
     }
     _chahe.set(currentItem.id, 1);
+    
     // @ts-ignore
     dispatch(fetchData(data));
     // request(currentItem, data);

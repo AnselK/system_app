@@ -58,11 +58,14 @@
 .search-history-item {
     display: block;
     flex: 1;
+    position: relative;
 
     .option-delete-icon {
         display: none;
         position: absolute;
-        right: 10px
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
     }
 
     &:hover {

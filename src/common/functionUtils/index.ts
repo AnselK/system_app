@@ -15,11 +15,4 @@ export const debounce = (fn, time = 16) => {
 };
 
 
-
-const circleREQ = (fn,time=16)=>{
-  const timeout = setTimeout || setImmediate
-  let flag = false
-  function REQ(...args){
-    timeout(()=>fn(...args),time)
-  }
-}
+ 

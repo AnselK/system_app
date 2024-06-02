@@ -36,14 +36,7 @@ function createMainWindow() {
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
     setTimeout(() => {
-      exe.start_exe((flag) => {
-        if (flag) {
-          mainWindow.webContents.send("server-success");
-          getUserInfo();
-        } else {
-          mainWindow.webContents.send("server-error");
-        }
-      });
+      exe.start_exe();
     });
   });
 
@@ -87,6 +80,21 @@ function mainWindowListenEvents() {
   });
 
   ipcMain.on("mainWindow-rendered", () => {});
+  ipcMain.on("mainWindow-vertify-serve", () => {
+    if (exe.started) {
+      mainWindow.webContents.send("server-success");
+      return getUserInfo();
+    }
+    if (exe.loading) return;
+    exe.vertifyServerSuccess((flag) => {
+      if (flag) {
+        mainWindow.webContents.send("server-success");
+        getUserInfo();
+      } else {
+        mainWindow.webContents.send("server-error");
+      }
+    });
+  });
 
   ipcMain.on("main-vertify-success", (e, code) => {
     sign(code, (flag) => {

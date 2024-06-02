@@ -1,14 +1,28 @@
 import React, { memo, useEffect, useState } from "react";
 import { Menu, Button, Modal, Tooltip } from "antd";
-import { DeleteFilled } from "@ant-design/icons";
-import { changeSearch, deleteSearchHis, initSearchs } from "@src/store/search";
+import {
+  DeleteFilled,
+  LoadingOutlined,
+  PauseCircleOutlined,
+} from "@ant-design/icons";
+import {
+  changeSearch,
+  deleteSearchHis,
+  initSearchs,
+  pauseSearch,
+} from "@src/store/search";
 import { useDispatch } from "react-redux";
-import { deleteHistorySearch, getHistorySearch } from "@src/services/data";
+import {
+  deleteHistorySearch,
+  getHistorySearch,
+  stopQueryData,
+} from "@src/services/data";
 import to from "@src/common/requestUtils/to";
 import { useSelector } from "react-redux";
 import { messageError } from "@src/common/messageUtil";
 import { asyncConfigChunk } from "@src/store/users";
 import { useLocation, useNavigate } from "react-router-dom";
+
 const HistoryMenu = () => {
   const navigate = useNavigate();
 
@@ -16,6 +30,7 @@ const HistoryMenu = () => {
   useEffect(() => {
     navigate("/search");
   }, []);
+  const [pauseLoading, setPauseLoading] = useState<boolean>(false);
   const location = useLocation();
   const hsitoryItems = useSelector((state: any) => state.main_data.history);
   const [selectedKeys, setselectedKeys] = useState<any[]>([]);
@@ -28,8 +43,6 @@ const HistoryMenu = () => {
 
   useEffect(() => {
     getHistoryData();
-    // @ts-ignore
-    dispatch(asyncConfigChunk());
   }, []);
 
   const historySearch = ({ item, key, keyPath, domEvent }) => {
@@ -70,18 +83,35 @@ const HistoryMenu = () => {
     }
   }, [location]);
 
+  const pause = (e, id) => {
+    e.stopPropagation();
+    if (pauseLoading) return;
+    setPauseLoading(true);
+    stopQueryData()
+      .then((res) => {
+        dispatch(pauseSearch(id));
+      })
+      .finally(() => {
+        setPauseLoading(false);
+      });
+  };
+
   return (
     <Menu
       style={{ flex: 1, overflow: "auto" }}
       onClick={historySearch}
       selectedKeys={selectedKeys}
-    >
-      {hsitoryItems.map((item) => (
-        <Menu.Item key={item.id}>
+      items={hsitoryItems.map((item) => ({
+        key: item.id,
+        label: (
           <div className="menu-item-content">
             <Tooltip
               placement="right"
-              title={`占用内存:【${item.comment_count}M】标题:【${item.search}】`}
+              title={
+                item.crawered
+                  ? `占用内存:【${item.comment_count}M】标题:【${item.search}】`
+                  : "加载中..."
+              }
             >
               <span
                 style={{
@@ -94,18 +124,47 @@ const HistoryMenu = () => {
                 {item.search}
               </span>
             </Tooltip>
-            <Button
-              onClick={(e) => deleteHistory(e, "")}
-              className="menu-item-del"
-              type="text"
-              size="small"
-              style={{ position: "absolute", right: 10, marginTop: 10 }}
+            <span
+              style={{ position: "absolute", right: 10 }}
+              className="right-icon"
             >
-              <DeleteFilled />
-            </Button>
+              {item.crawered ? (
+                <Button
+                  onClick={(e) => deleteHistory(e, item.id)}
+                  className="menu-item-del"
+                  type="text"
+                  size="small"
+                >
+                  <DeleteFilled />
+                </Button>
+              ) : (
+                <span className="loading-icon">
+                  <Button
+                    onClick={(e) => pause(e, item.id)}
+                    type="text"
+                    size="small"
+                  >
+                    <LoadingOutlined
+                      style={{ margin: 0 }}
+                      className="loading"
+                    />
+                    <PauseCircleOutlined
+                      className="pause"
+                      title="停止爬取"
+                      disabled={pauseLoading}
+                    />
+                  </Button>
+                </span>
+              )}
+            </span>
           </div>
-        </Menu.Item>
-      ))}
+        ),
+        title: item.search,
+      }))}
+    >
+      {/* {hsitoryItems.map((item) => (
+        <Menu.Item key={item.id}></Menu.Item>
+      ))} */}
     </Menu>
   );
 };

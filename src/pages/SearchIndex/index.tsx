@@ -9,19 +9,25 @@ import {
   Radio,
   Space,
 } from "antd";
-import React, { memo, useEffect } from "react";
+import React, { memo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./index.less";
-import { createSearch, getHistoryAsyncAction } from "@src/store/search";
+import { createSearch } from "@src/store/search";
 import { useDispatch } from "react-redux";
 import { DownOutlined } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { messageError } from "@src/common/messageUtil";
 
 const SearchIndex = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [form] = Form.useForm();
+  const hasCrawer = useSelector((state: any) => state.main_data.hasCrawer);
   const onFinish: FormProps["onFinish"] = (value) => {
-    if (!value.search_info.trim()) return;
+    if (hasCrawer) {
+      return messageError("请等待搜索完毕或停止搜索后再进行操作");
+    }
+    if (!value.search_info || !value.search_info.trim()) return;
     const search_params = form.getFieldsValue();
     dispatch(
       createSearch({
@@ -31,7 +37,7 @@ const SearchIndex = () => {
       })
     );
     navigate("/home", { state: { info: value.search_info, isHistory: false } });
-  }
+  };
 
   const dropdownRender = () => {
     return (
@@ -100,7 +106,7 @@ const SearchIndex = () => {
                   </Dropdown>
                 }
                 suffix={
-                  <Button type="primary" htmlType="submit">
+                  <Button type="primary" htmlType="submit" disabled={hasCrawer}>
                     开始
                   </Button>
                 }

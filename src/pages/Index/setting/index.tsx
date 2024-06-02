@@ -27,8 +27,6 @@ const Setting = () => {
   );
   const submitSetting = useCallback(
     (values) => {
-      console.log("dddd");
-
       const data = { ...values };
       Object.keys(valEnum).forEach((key) => {
         data[key] = Number(data[key]);

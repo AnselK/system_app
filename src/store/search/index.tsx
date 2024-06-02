@@ -7,6 +7,7 @@ import { getHistorySearch, queryData } from "@src/services/data";
 import { cancelToken } from "@src/common/requestUtils/cancel";
 import { CommentsApi } from "@src/pages/DataPage/type";
 import { useNavigate } from "react-router-dom";
+import { omitProperty } from "@src/common/objectUtils";
 type SearchState = {
   history: Array<SearchsItemType>;
   current?: SearchsItemType;
@@ -35,6 +36,7 @@ type videoData = {
   id: string | number;
   data: any;
   loading: boolean;
+  code: number;
 };
 const tokenMap = new Map();
 // 定义异步action
@@ -42,6 +44,7 @@ export const fetchData = createAsyncThunk(
   "main_data/fetchData",
   async (params: any, { dispatch }) => {
     dispatch(toogleCrawer({ id: params.id, status: true }));
+
     let reqToken;
     if (tokenMap.has(params.id)) {
       reqToken = tokenMap.get(params.id).token;
@@ -50,8 +53,12 @@ export const fetchData = createAsyncThunk(
       reqToken = token;
       tokenMap.set(params.id, { token, cancel, timer: null });
     }
-    const response: any = await queryData(params, reqToken);
-    let video: videoData = { id: params.id, data: [], loading: false };
+    const response: any = await queryData(
+      omitProperty(params, "navigate"),
+      reqToken
+    );
+    let video: videoData = { id: params.id, data: [], loading: false, code: 0 };
+
     switch (response.code) {
       case 0:
         const { data, all_finish } = response;
@@ -74,11 +81,11 @@ export const fetchData = createAsyncThunk(
             dispatch(fetchData(params));
           }, 2000);
         }
-
         break;
       case 3:
-        useNavigate()("/login");
+        video.code = response.code;
         dispatch(pauseSearch(params.id));
+        params.navigate("/login");
         break;
       default:
         break;
@@ -100,12 +107,13 @@ export const searchSlice = createSlice({
         isHistory,
         search_params,
         loading: true,
+        crawered: false,
       };
-      
+
       state.current = sear;
-      state.current_id = id+'';
+      state.current_id = id + "";
       state.history.push(state.current);
-      state.hasCrawer = true
+      state.hasCrawer = true;
     },
     changeSearch(state, action) {
       const history = [...state.history];
@@ -127,15 +135,13 @@ export const searchSlice = createSlice({
           state.current = target;
         }
       }
-     
     },
     initSearchs(state, action) {
-      
       state.history = action.payload.map((item) => ({
         ...item,
         isHistory: true,
-        loading: false,
-        crawered:true
+        loading: true,
+        crawered: true,
       }));
     },
     addHistoryData(state, action) {
@@ -177,22 +183,24 @@ export const searchSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(fetchData.fulfilled, (state, action) => {
-      const h = state.history.find((item) => item.id === action.payload?.id);
-      if (h) {
-        const v = h.list?.find((vi) => vi.video_id === action.payload?.id);
-        if (v) {
-          v.list
-            ? v.list.push(...action.payload?.data.list)
-            : (v.list = action.payload?.data.list);
-        } else {
-          h.list
-            ? h.list.push(action.payload?.data)
-            : (h.list = [action.payload?.data]);
+      if (action.payload.code === 0) {
+        const h = state.history.find((item) => item.id === action.payload?.id);
+        if (h) {
+          const v = h.list?.find((vi) => vi.video_id === action.payload?.id);
+          if (v) {
+            v.list
+              ? v.list.push(...action.payload?.data.list)
+              : (v.list = action.payload?.data.list);
+          } else {
+            h.list
+              ? h.list.push(action.payload?.data)
+              : (h.list = [action.payload?.data]);
+          }
+          h.loading = action.payload?.loading;
         }
-        h.loading = action.payload?.loading;
-      }
-      if (state.current && state.current.id === action.payload?.id) {
-        state.current = h;
+        if (state.current && state.current.id === action.payload?.id) {
+          state.current = h;
+        }
       }
     });
   },

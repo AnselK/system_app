@@ -28,12 +28,10 @@ const Index = () => {
   };
 
   useEffect(() => {
-    getHistoryData();
     // @ts-ignore
     dispatch(asyncConfigChunk());
   }, []);
 
- 
   const newSearch = () => {
     navigate("/search");
   };

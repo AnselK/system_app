@@ -8,9 +8,13 @@ const initialState = {
     auto_save_data: 0,
     save_followed_data: 1,
   },
+  server:{
+    started:false
+  }
 };
 
 export const asyncConfigChunk = () => {
+
   return (dispatch: Dispatch) => {
     getSysConfig()
       .then((res) => {
@@ -29,8 +33,11 @@ const userSlice = createSlice({
     setSysConfig(state, action) {
       state.sys = action.payload;
     },
+    changeServerStatus(state,action){
+      state.server.started = action.payload
+    }
   },
 });
 
-export const { setSysConfig } = userSlice.actions;
+export const { setSysConfig,changeServerStatus } = userSlice.actions;
 export default userSlice.reducer;

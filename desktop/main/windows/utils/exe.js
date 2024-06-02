@@ -9,6 +9,11 @@ class EXE {
   data_callback = null;
   success_callback = null;
   SERVER_START = false;
+  started = false;
+  vertifyCallback = null;
+  restarted = false;
+  reload_times = 0;
+  loading = false
   constructor(path, params = {}) {
     const { onError, onData, onClose, onSuccess } = params;
     this.err_callback = onError;
@@ -20,9 +25,10 @@ class EXE {
   start_exe(cb, path, params) {
     if (this.SERVER_START) return;
     const p = this.EXE_PATH ?? path;
-    console.log(p, "pppp");
-    if (!p) throw new Error("the exe path is undefined");
 
+    if (!p) throw new Error("the exe path is undefined");
+    this.started = false;
+    this.loading = true
     this.CURRENT_EXE_PROCEE = spawn(p, params);
     this.IntersectionObserverEntry();
     this.vertifyServerSuccess(cb);
@@ -59,17 +65,33 @@ class EXE {
     }
   }
   vertifyServerSuccess(cb) {
+    if (cb) {
+      this.vertifyCallback = cb;
+    }
     vertify((type) => {
       cb(type);
       if (!type) {
-        if (this.err_callback) {
-          this.err_callback(this.CURRENT_EXE_PROCEE);
-        }
         this.end_exe();
+        if (this.reload_times >= 3) {
+          if (this.err_callback) {
+            this.err_callback(this.CURRENT_EXE_PROCEE);
+          }
+          return;
+        }
+        this.restarted = true;
+        this.reLoad();
+        this.reload_times++;
         return;
+      } else {
+        this.restarted = false;
+        this.loading = false
       }
+      this.started = type;
       this.SERVER_START = true;
     });
+  }
+  reLoad() {
+    this.start_exe(this.vertifyCallback);
   }
   end_exe(id, cb) {
     this.CURRENT_EXE_PROCEE.kill && this.CURRENT_EXE_PROCEE.kill("SIGTERM");
